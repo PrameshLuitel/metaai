@@ -1,5 +1,3 @@
-// SummarizeConversation user story implementation.
-
 'use server';
 
 /**
@@ -10,10 +8,16 @@
  * - SummarizeConversationOutput - The return type for the summarizeConversation function.
  */
 
-import {ai} from '@/ai/genkit';
+import {initAi} from '@/ai/genkit';
 import {z} from 'genkit';
+import {db} from '@/db';
+import {tenants} from '@/db/schema';
+import {eq} from 'drizzle-orm';
+import { GenkitError } from 'genkit';
+
 
 const SummarizeConversationInputSchema = z.object({
+  tenantId: z.number().describe('The ID of the tenant to fetch the API key for.'),
   platform: z.string().describe('The platform where the conversation took place (e.g., WhatsApp, Messenger).'),
   customerId: z.string().describe('The unique identifier of the customer.'),
   conversationText: z.string().describe('The complete text of the conversation.'),
@@ -27,41 +31,67 @@ const SummarizeConversationOutputSchema = z.object({
 });
 export type SummarizeConversationOutput = z.infer<typeof SummarizeConversationOutputSchema>;
 
-export async function summarizeConversation(input: SummarizeConversationInput): Promise<SummarizeConversationOutput> {
-  return summarizeConversationFlow(input);
+async function getApiKeyForTenant(tenantId: number): Promise<string> {
+    if (!db) {
+        throw new GenkitError({
+            status: 'UNAVAILABLE',
+            message: 'Database connection is not available.'
+        });
+    }
+    const tenant = await db.query.tenants.findFirst({
+        where: eq(tenants.id, tenantId),
+        columns: {
+            geminiApiKey: true,
+        }
+    });
+
+    if (!tenant || !tenant.geminiApiKey) {
+        throw new GenkitError({
+            status: 'NOT_FOUND',
+            message: `API key for tenant ${tenantId} not found.`,
+        });
+    }
+    return tenant.geminiApiKey;
 }
 
-const summarizeConversationPrompt = ai.definePrompt({
-  name: 'summarizeConversationPrompt',
-  input: {schema: SummarizeConversationInputSchema},
-  output: {schema: SummarizeConversationOutputSchema},
-  prompt: `You are an AI assistant helping a Nepali business summarize customer conversations.
+export async function summarizeConversation(input: SummarizeConversationInput): Promise<SummarizeConversationOutput> {
+  const apiKey = await getApiKeyForTenant(input.tenantId);
+  const ai = initAi(apiKey);
 
-  Analyze the following conversation and provide a summary, sentiment score, and a suggested reply.
+  const summarizeConversationPrompt = ai.definePrompt({
+    name: 'summarizeConversationPrompt',
+    input: {schema: SummarizeConversationInputSchema},
+    output: {schema: SummarizeConversationOutputSchema},
+    prompt: `You are an AI assistant helping a Nepali business summarize customer conversations.
 
-  Platform: {{{platform}}}
-  Customer ID: {{{customerId}}}
-  Conversation:
-  {{#if conversationText}}
-  {{conversationText}}
-  {{else}}
-  No conversation text provided.
-  {{/if}}
+    Analyze the following conversation and provide a summary, sentiment score, and a suggested reply.
 
-  Respond in Nepali mixed with English (Romanch).
-  Current Festival Context: [Insert Date Check]. Currency: NPR.
-  Format the sentiment score as a number between -1 and 1.
-`,
-});
+    Platform: {{{platform}}}
+    Customer ID: {{{customerId}}}
+    Conversation:
+    {{#if conversationText}}
+    {{conversationText}}
+    {{else}}
+    No conversation text provided.
+    {{/if}}
 
-const summarizeConversationFlow = ai.defineFlow(
-  {
-    name: 'summarizeConversationFlow',
-    inputSchema: SummarizeConversationInputSchema,
-    outputSchema: SummarizeConversationOutputSchema,
-  },
-  async input => {
-    const {output} = await summarizeConversationPrompt(input);
-    return output!;
-  }
-);
+    Respond in Nepali mixed with English (Romanch).
+    Current Festival Context: [Insert Date Check]. Currency: NPR.
+    Format the sentiment score as a number between -1 and 1.
+  `,
+  });
+
+  const summarizeConversationFlow = ai.defineFlow(
+    {
+      name: 'summarizeConversationFlow',
+      inputSchema: SummarizeConversationInputSchema,
+      outputSchema: SummarizeConversationOutputSchema,
+    },
+    async (flowInput) => {
+      const {output} = await summarizeConversationPrompt(flowInput);
+      return output!;
+    }
+  );
+
+  return summarizeConversationFlow(input);
+}

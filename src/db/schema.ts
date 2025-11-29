@@ -24,6 +24,7 @@ export const tenants = pgTable('tenants', {
   subdomain: varchar('subdomain', { length: 255 }).unique().notNull(),
   businessName: varchar('business_name', { length: 255 }).notNull(),
   tier: tenantTierEnum('tier').default('free').notNull(),
+  geminiApiKey: text('gemini_api_key'), // New field for tenant-specific API key
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 

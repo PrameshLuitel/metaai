@@ -4,7 +4,6 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
-  Card,
   CardContent,
   CardFooter,
   CardHeader,
@@ -18,8 +17,9 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { generateSuggestedReply } from "@/ai/flows/ai-suggested-reply";
 import { Skeleton } from '@/components/ui/skeleton';
 
-async function AISuggestion({ conversationText }: { conversationText: string }) {
+async function AISuggestion({ conversationText, tenantId }: { conversationText: string, tenantId: number }) {
     const suggestion = await generateSuggestedReply({
+        tenantId,
         conversationHistory: conversationText,
         userMessage: "",
         businessContext: "We are a local momo shop."
@@ -49,6 +49,9 @@ export default async function ChatConversationPage({
   }
 
   const conversationTextForAI = conversation.messages.map(m => `${m.from}: ${m.text}`).join('\n');
+
+  // In a real app, you'd get the tenantId from the authenticated user's session
+  const MOCK_TENANT_ID = 1;
 
   return (
     <div className="flex h-full flex-col">
@@ -96,7 +99,7 @@ export default async function ChatConversationPage({
       <CardFooter className="flex-col items-start gap-2 border-t p-4">
         <div className="flex w-full items-center gap-2">
             <React.Suspense fallback={<AISuggestionFallback />}>
-                <AISuggestion conversationText={conversationTextForAI} />
+                <AISuggestion conversationText={conversationTextForAI} tenantId={MOCK_TENANT_ID} />
             </React.Suspense>
         </div>
         <div className="relative w-full">

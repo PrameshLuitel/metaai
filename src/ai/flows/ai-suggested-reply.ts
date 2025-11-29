@@ -8,10 +8,15 @@
  * - AISuggestedReplyOutput - The return type for the generateSuggestedReply function.
  */
 
-import {ai} from '@/ai/genkit';
+import {initAi} from '@/ai/genkit';
 import {z} from 'genkit';
+import {db} from '@/db';
+import {tenants} from '@/db/schema';
+import {eq} from 'drizzle-orm';
+import { GenkitError } from 'genkit';
 
 const AISuggestedReplyInputSchema = z.object({
+  tenantId: z.number().describe('The ID of the tenant to fetch the API key for.'),
   conversationHistory: z
     .string()
     .describe('The recent conversation history between the business and the customer.'),
@@ -28,40 +33,66 @@ const AISuggestedReplyOutputSchema = z.object({
 });
 export type AISuggestedReplyOutput = z.infer<typeof AISuggestedReplyOutputSchema>;
 
+async function getApiKeyForTenant(tenantId: number): Promise<string> {
+    if (!db) {
+        throw new GenkitError({
+            status: 'UNAVAILABLE',
+            message: 'Database connection is not available.'
+        });
+    }
+    const tenant = await db.query.tenants.findFirst({
+        where: eq(tenants.id, tenantId),
+        columns: {
+            geminiApiKey: true,
+        }
+    });
+
+    if (!tenant || !tenant.geminiApiKey) {
+        throw new GenkitError({
+            status: 'NOT_FOUND',
+            message: `API key for tenant ${tenantId} not found.`,
+        });
+    }
+    return tenant.geminiApiKey;
+}
+
 export async function generateSuggestedReply(
   input: AISuggestedReplyInput
 ): Promise<AISuggestedReplyOutput> {
+  const apiKey = await getApiKeyForTenant(input.tenantId);
+  const ai = initAi(apiKey);
+
+  const prompt = ai.definePrompt({
+    name: 'aiSuggestedReplyPrompt',
+    input: {schema: AISuggestedReplyInputSchema},
+    output: {schema: AISuggestedReplyOutputSchema},
+    prompt: `You are a helpful AI assistant for a Nepali business. You speak 'Romanch' (Nepali mixed with English). You are polite.
+
+    Current Festival Context: {{#if currentFestival}}{{{currentFestival}}}{{else}}No festival currently.{{/if}}
+
+    Conversation History:
+    {{conversationHistory}}
+
+    Latest Message:
+    {{userMessage}}
+
+    Business Context:
+    {{businessContext}}
+
+    Generate a short, relevant reply in Romanch.  If the user asks about price, check the context provided. Currency: NPR.`,
+  });
+
+  const generateSuggestedReplyFlow = ai.defineFlow(
+    {
+      name: 'generateSuggestedReplyFlow',
+      inputSchema: AISuggestedReplyInputSchema,
+      outputSchema: AISuggestedReplyOutputSchema,
+    },
+    async (flowInput) => {
+      const {output} = await prompt(flowInput);
+      return output!;
+    }
+  );
+
   return generateSuggestedReplyFlow(input);
 }
-
-const prompt = ai.definePrompt({
-  name: 'aiSuggestedReplyPrompt',
-  input: {schema: AISuggestedReplyInputSchema},
-  output: {schema: AISuggestedReplyOutputSchema},
-  prompt: `You are a helpful AI assistant for a Nepali business. You speak 'Romanch' (Nepali mixed with English). You are polite.
-
-  Current Festival Context: {{#if currentFestival}}{{{currentFestival}}}{{else}}No festival currently.{{/if}}
-
-  Conversation History:
-  {{conversationHistory}}
-
-  Latest Message:
-  {{userMessage}}
-
-  Business Context:
-  {{businessContext}}
-
-  Generate a short, relevant reply in Romanch.  If the user asks about price, check the context provided. Currency: NPR.`,
-});
-
-const generateSuggestedReplyFlow = ai.defineFlow(
-  {
-    name: 'generateSuggestedReplyFlow',
-    inputSchema: AISuggestedReplyInputSchema,
-    outputSchema: AISuggestedReplyOutputSchema,
-  },
-  async input => {
-    const {output} = await prompt(input);
-    return output!;
-  }
-);
