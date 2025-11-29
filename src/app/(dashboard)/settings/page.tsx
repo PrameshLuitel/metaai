@@ -32,9 +32,10 @@ const users = [
 export default function SettingsPage() {
   return (
     <Tabs defaultValue="profile" className="w-full">
-      <TabsList className="grid w-full grid-cols-4">
+      <TabsList className="grid w-full grid-cols-5">
         <TabsTrigger value="profile">Business Profile</TabsTrigger>
         <TabsTrigger value="api">API Keys</TabsTrigger>
+        <TabsTrigger value="integrations">Integrations</TabsTrigger>
         <TabsTrigger value="users">Users</TabsTrigger>
         <TabsTrigger value="appearance">Appearance</TabsTrigger>
       </TabsList>
@@ -77,6 +78,36 @@ export default function SettingsPage() {
           </CardContent>
           <CardFooter>
             <Button>Save API Key</Button>
+          </CardFooter>
+        </Card>
+      </TabsContent>
+       <TabsContent value="integrations">
+        <Card>
+          <CardHeader>
+            <CardTitle>Meta Integration</CardTitle>
+            <CardDescription>
+              Connect your Facebook, Instagram, and WhatsApp accounts for unified messaging.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="metaAppId">Meta App ID</Label>
+              <Input id="metaAppId" placeholder="Enter your Meta App ID" />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="metaAppSecret">Meta App Secret</Label>
+              <Input id="metaAppSecret" type="password" placeholder="Enter your Meta App Secret" />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="metaWebhookVerifyToken">Webhook Verify Token</Label>
+              <Input id="metaWebhookVerifyToken" placeholder="Enter your Webhook Verify Token" />
+              <p className="text-xs text-muted-foreground">
+                A secure, random string you create. This will be used by Meta to verify your webhook endpoint.
+              </p>
+            </div>
+          </CardContent>
+          <CardFooter>
+            <Button>Save Integration</Button>
           </CardFooter>
         </Card>
       </TabsContent>
