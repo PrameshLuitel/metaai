@@ -18,10 +18,17 @@ interface ChatLayoutProps {
 
 export function ChatLayout({ conversations, children }: ChatLayoutProps) {
   const pathname = usePathname();
+  const isChatActive = pathname.includes('/chat/') && pathname.split('/').length > 2;
 
   return (
-    <div className="grid w-full grid-cols-1 md:grid-cols-[300px_1fr] lg:grid-cols-[350px_1fr]">
-      <div className="hidden flex-col border-r bg-background md:flex">
+    <div className={cn(
+      "grid w-full h-full grid-cols-1 md:grid-cols-[300px_1fr] lg:grid-cols-[350px_1fr]",
+      isChatActive ? "grid-cols-[0px_1fr] md:grid-cols-[300px_1fr] lg:grid-cols-[350px_1fr]" : ""
+    )}>
+      <div className={cn(
+        "flex-col border-r bg-background",
+        isChatActive ? "hidden md:flex" : "flex"
+      )}>
         <div className="border-b p-4">
           <div className="relative">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -69,7 +76,10 @@ export function ChatLayout({ conversations, children }: ChatLayoutProps) {
           </nav>
         </ScrollArea>
       </div>
-      <div className="flex flex-col">{children}</div>
+      <div className={cn(
+        "flex-col",
+        isChatActive ? "flex" : "hidden md:flex"
+      )}>{children}</div>
     </div>
   );
 }

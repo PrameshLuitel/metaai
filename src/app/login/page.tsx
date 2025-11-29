@@ -51,62 +51,64 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex min-h-screen w-full flex-col items-center justify-center bg-muted/40 p-4">
-        <div className="mb-8 flex items-center gap-2 text-foreground">
+    <div className="flex h-screen w-full items-center justify-center bg-muted/40">
+      <div className="w-full max-w-md p-4">
+        <div className="mb-8 flex items-center justify-center gap-2 text-foreground">
             <Mountain className="h-6 w-6" />
             <span className="text-xl font-semibold">VyaparOS</span>
         </div>
-      <Card className="w-full max-w-sm">
-        <CardHeader className="text-center">
-          <CardTitle className="text-2xl">Welcome Back</CardTitle>
-          <CardDescription>
-            Enter your credentials to access your account
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleLogin} className="grid gap-4">
-            <div className="grid gap-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="m@example.com"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
-            </div>
-            <div className="grid gap-2">
-              <div className="flex items-center">
-                <Label htmlFor="password">Password</Label>
-                <Link
-                  href="/forgot-password"
-                  className="ml-auto inline-block text-sm underline"
-                >
-                  Forgot password?
-                </Link>
+        <Card className="w-full">
+          <CardHeader className="text-center">
+            <CardTitle className="text-2xl">Welcome Back</CardTitle>
+            <CardDescription>
+              Enter your credentials to access your account
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleLogin} className="grid gap-4">
+              <div className="grid gap-2">
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="m@example.com"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                />
               </div>
-              <Input 
-                id="password" 
-                type="password" 
-                required 
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
+              <div className="grid gap-2">
+                <div className="flex items-center">
+                  <Label htmlFor="password">Password</Label>
+                  <Link
+                    href="/forgot-password"
+                    className="ml-auto inline-block text-sm underline"
+                  >
+                    Forgot password?
+                  </Link>
+                </div>
+                <Input 
+                  id="password" 
+                  type="password" 
+                  required 
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                />
+              </div>
+              {error && <p className="text-sm font-medium text-destructive">{error}</p>}
+              <Button type="submit" className="w-full">
+                Login
+              </Button>
+            </form>
+            <div className="mt-4 text-center text-sm">
+              Don&apos;t have an account?{' '}
+              <Link href="/signup" className="font-medium text-primary underline-offset-4 hover:underline">
+                Sign up
+              </Link>
             </div>
-            {error && <p className="text-sm font-medium text-destructive">{error}</p>}
-            <Button type="submit" className="w-full">
-              Login
-            </Button>
-          </form>
-          <div className="mt-4 text-center text-sm">
-            Don&apos;t have an account?{' '}
-            <Link href="/signup" className="font-medium text-primary underline-offset-4 hover:underline">
-              Sign up
-            </Link>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }

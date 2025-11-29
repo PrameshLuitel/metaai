@@ -35,7 +35,7 @@ function UserManagementTable() {
     return (
         <Card>
             <CardHeader>
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                     <div>
                         <CardTitle>User Management</CardTitle>
                         <CardDescription>
@@ -46,51 +46,53 @@ function UserManagementTable() {
                 </div>
             </CardHeader>
             <CardContent>
-                 <Table>
-                    <TableHeader>
-                        <TableRow>
-                        <TableHead>Name</TableHead>
-                        <TableHead>Email</TableHead>
-                        <TableHead>Role</TableHead>
-                        <TableHead className="text-right">Actions</TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {isLoading && (
+                 <div className="overflow-x-auto">
+                    <Table>
+                        <TableHeader>
                             <TableRow>
-                                <TableCell colSpan={4} className="h-24 text-center">
-                                    <p>Loading users...</p>
-                                </TableCell>
-                           </TableRow>
-                        )}
-                        {isError && (
-                            <TableRow>
-                                <TableCell colSpan={4} className="h-24 text-center text-destructive">
-                                    <p>Failed to load users.</p>
-                                </TableCell>
-                           </TableRow>
-                        )}
-                        {!isLoading && !isError && users && users.map((user) => (
-                            <TableRow key={user.email}>
-                                <TableCell className="font-medium">{user.name || 'N/A'}</TableCell>
-                                <TableCell>{user.email}</TableCell>
-                                <TableCell>
-                                    <Badge variant={user.role === 'admin' ? 'default' : 'secondary'}>{user.role}</Badge>
-                                </TableCell>
-                                <TableCell className="text-right">
-                                    <Button variant="ghost" size="sm">Edit</Button>
-                                </TableCell>
+                            <TableHead>Name</TableHead>
+                            <TableHead>Email</TableHead>
+                            <TableHead>Role</TableHead>
+                            <TableHead className="text-right">Actions</TableHead>
                             </TableRow>
-                        ))}
-                         {!isLoading && !isError && (!users || users.length === 0) && (
-                            <TableRow>
-                                <TableCell colSpan={4} className="h-24 text-center">
-                                    No users found.
-                                </TableCell>
+                        </TableHeader>
+                        <TableBody>
+                            {isLoading && (
+                                <TableRow>
+                                    <TableCell colSpan={4} className="h-24 text-center">
+                                        <p>Loading users...</p>
+                                    </TableCell>
                             </TableRow>
-                        )}
-                    </TableBody>
-                </Table>
+                            )}
+                            {isError && (
+                                <TableRow>
+                                    <TableCell colSpan={4} className="h-24 text-center text-destructive">
+                                        <p>Failed to load users.</p>
+                                    </TableCell>
+                            </TableRow>
+                            )}
+                            {!isLoading && !isError && users && users.map((user) => (
+                                <TableRow key={user.email}>
+                                    <TableCell className="font-medium">{user.name || 'N/A'}</TableCell>
+                                    <TableCell>{user.email}</TableCell>
+                                    <TableCell>
+                                        <Badge variant={user.role === 'admin' ? 'default' : 'secondary'}>{user.role}</Badge>
+                                    </TableCell>
+                                    <TableCell className="text-right">
+                                        <Button variant="ghost" size="sm">Edit</Button>
+                                    </TableCell>
+                                </TableRow>
+                            ))}
+                            {!isLoading && !isError && (!users || users.length === 0) && (
+                                <TableRow>
+                                    <TableCell colSpan={4} className="h-24 text-center">
+                                        No users found.
+                                    </TableCell>
+                                </TableRow>
+                            )}
+                        </TableBody>
+                    </Table>
+                 </div>
             </CardContent>
         </Card>
     );
@@ -99,7 +101,7 @@ function UserManagementTable() {
 export default function SettingsPage() {
   return (
     <Tabs defaultValue="profile" className="w-full">
-      <TabsList className="grid w-full grid-cols-5">
+      <TabsList className="grid w-full grid-cols-2 sm:grid-cols-5">
         <TabsTrigger value="profile">Business Profile</TabsTrigger>
         <TabsTrigger value="api">API Keys</TabsTrigger>
         <TabsTrigger value="integrations">Integrations</TabsTrigger>
