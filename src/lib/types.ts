@@ -5,13 +5,13 @@ export type Tenant = {
   tier: 'free' | 'pro' | 'enterprise';
 };
 
-export type User = {
-  id: string; // auth_id
-  role: 'admin' | 'staff' | 'viewer';
+export type UserProfile = {
+  id: string; // This will be the Firebase Auth UID
   tenantId: string;
-  name: string;
-  email: string;
-  avatarUrl?: string;
+  role: 'admin' | 'staff' | 'viewer';
+  name: string | null;
+  email: string | null;
+  avatarUrl: string | null;
 };
 
 export type NepaliAddress = {
