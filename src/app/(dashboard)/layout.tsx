@@ -61,12 +61,12 @@ export default function DashboardLayout({
 
   return (
     <SidebarProvider>
-      <Sidebar>
+      <Sidebar variant="floating" collapsible="icon">
         <SidebarHeader>
-           <div className="flex h-9 w-full items-center gap-2 rounded-md bg-background p-2 text-sm font-medium text-foreground">
+           <div className="flex h-9 w-full items-center gap-2 rounded-md p-2 text-sm font-medium text-foreground">
              <Link href="/dashboard" className="flex items-center gap-2">
-                <Mountain className="h-5 w-5 text-primary" />
-                <span className="font-bold text-lg">VyaparOS</span>
+                <Mountain className="h-6 w-6 text-primary" />
+                 <span className="font-bold text-lg group-data-[collapsible=icon]:hidden">VyaparOS</span>
              </Link>
           </div>
         </SidebarHeader>
@@ -80,10 +80,11 @@ export default function DashboardLayout({
                     asChild
                     isActive={isActive}
                     tooltip={item.label}
+                    className="data-[active=true]:bg-primary data-[active=true]:text-primary-foreground group-data-[collapsible=icon]:justify-center"
                   >
                     <Link href={item.href}>
-                      <item.icon />
-                      <span>{item.label}</span>
+                      <item.icon className={cn(!isActive && "text-muted-foreground group-hover:text-foreground")} />
+                      <span className="group-data-[collapsible=icon]:hidden">{item.label}</span>
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -94,10 +95,10 @@ export default function DashboardLayout({
         <SidebarFooter>
           <ul className="flex w-full min-w-0 flex-col gap-1">
             <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={pathname.startsWith('/settings')} tooltip="Settings">
+                <SidebarMenuButton asChild isActive={pathname.startsWith('/settings')} tooltip="Settings" className="data-[active=true]:bg-primary data-[active=true]:text-primary-foreground group-data-[collapsible=icon]:justify-center">
                     <Link href="/settings">
-                        <Settings />
-                        <span>Settings</span>
+                        <Settings className={cn(!pathname.startsWith('/settings') && "text-muted-foreground group-hover:text-foreground")} />
+                        <span className="group-data-[collapsible=icon]:hidden">Settings</span>
                     </Link>
                 </SidebarMenuButton>
             </SidebarMenuItem>
