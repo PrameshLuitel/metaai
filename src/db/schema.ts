@@ -7,23 +7,9 @@ import {
   decimal,
   timestamp,
   pgEnum,
-  json,
-  customType,
+  jsonb,
 } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
-
-// Custom type for Nepal-specific address schema
-const nepaliAddress = customType<{ data: { province: string; district: string; municipality: string; ward: number; tole: string; landmark?: string; } }>({
-  dataType() {
-    return 'jsonb';
-  },
-  toDriver(value) {
-    return value;
-  },
-  fromDriver(value) {
-    return value as { province: string; district: string; municipality: string; ward: number; tole: string; landmark?: string; };
-  },
-});
 
 // Enums
 export const userRoleEnum = pgEnum('user_role', ['admin', 'staff', 'viewer']);
@@ -43,7 +29,7 @@ export const tenants = pgTable('tenants', {
 
 // Users Table
 export const users = pgTable('users', {
-  id: varchar('id', { length: 255 }).primaryKey(), // Using auth_id from a service like Clerk
+  id: varchar('id', { length: 255 }).primaryKey(), // Using auth_id from a service like Clerk/Firebase Auth
   email: varchar('email', { length: 255 }).notNull().unique(),
   name: varchar('name', { length: 255 }),
   avatarUrl: text('avatar_url'),
@@ -60,6 +46,7 @@ export const inventory = pgTable('inventory', {
   priceNpr: decimal('price_npr', { precision: 10, scale: 2 }).notNull(),
   stock: integer('stock').notNull(),
   lowStockThreshold: integer('low_stock_threshold').default(0),
+  imageUrl: text('image_url'),
   tenantId: integer('tenant_id').references(() => tenants.id, { onDelete: 'cascade' }).notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
@@ -68,13 +55,11 @@ export const inventory = pgTable('inventory', {
 export const orders = pgTable('orders', {
   id: serial('id').primaryKey(),
   customerName: varchar('customer_name', { length: 255 }).notNull(),
-  customerPhone: varchar('customer_phone', { length: 50 }),
-  customerAddress: nepaliAddress('customer_address'),
   status: orderStatusEnum('status').default('Pending').notNull(),
   paymentMethod: paymentMethodEnum('payment_method').notNull(),
   totalAmount: decimal('total_amount', { precision: 10, scale: 2 }).notNull(),
   proofScreenshotUrl: text('proof_screenshot_url'),
-  items: json('items').notNull(), // JSON array of { inventoryId: number, quantity: number, price: number }
+  items: jsonb('items').notNull(), // JSON array of { inventoryId: number, quantity: number, price: number }
   tenantId: integer('tenant_id').references(() => tenants.id, { onDelete: 'cascade' }).notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
@@ -85,8 +70,9 @@ export const conversations = pgTable('conversations', {
   platform: conversationPlatformEnum('platform').notNull(),
   customerId: varchar('customer_id', { length: 255 }).notNull(), // e.g., phone number for WhatsApp
   customerName: varchar('customer_name', { length: 255 }),
-  sentimentScore: decimal('sentiment_score', { precision: 3, scale: 2 }),
+  sentimentScore: decimal('sentiment_score', { precision: 3, scale: 2 }).default('0').notNull(),
   aiSummary: text('ai_summary'),
+  avatarUrl: text('avatar_url'),
   tenantId: integer('tenant_id').references(() => tenants.id, { onDelete: 'cascade' }).notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   lastMessageAt: timestamp('last_message_at').defaultNow().notNull(),

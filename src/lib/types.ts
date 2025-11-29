@@ -24,12 +24,12 @@ export type NepaliAddress = {
 };
 
 export type InventoryItem = {
-  id: string;
+  id: number;
   name: string;
-  variant: string;
+  variant: string | null;
   priceNpr: number;
   stock: number;
-  lowStockThreshold: number;
+  lowStockThreshold: number | null;
   imageUrl?: string;
 };
 
@@ -39,7 +39,7 @@ export type OrderItem = {
 };
 
 export type Order = {
-  id: string;
+  id: number;
   customerName: string;
   status: 'Pending' | 'Paid' | 'Shipped' | 'Completed' | 'Cancelled' | 'Udhaari';
   paymentMethod: 'eSewa' | 'Khalti' | 'FonePay' | 'Cash' | 'Udhaari';

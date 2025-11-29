@@ -29,9 +29,15 @@ export const columns: ColumnDef<InventoryItem>[] = [
               <Image
                 src={item.imageUrl}
                 alt={item.name}
-                fill
+                width={64}
+                height={64}
                 className="rounded-md object-cover"
               />
+            )}
+             {!item.imageUrl && (
+                <div className="h-16 w-16 rounded-md bg-muted flex items-center justify-center">
+                    <MoreHorizontal className="h-4 w-4 text-muted-foreground" />
+                </div>
             )}
           </div>
           <div>
@@ -47,7 +53,7 @@ export const columns: ColumnDef<InventoryItem>[] = [
     header: "Stock",
     cell: ({ row }) => {
         const item = row.original;
-        const isLowStock = item.stock <= item.lowStockThreshold;
+        const isLowStock = item.stock <= (item.lowStockThreshold || 0);
         return (
             <div className="flex items-center gap-2">
                 <div className={cn("h-2.5 w-2.5 rounded-full", isLowStock ? "bg-destructive" : "bg-green-500")}></div>
