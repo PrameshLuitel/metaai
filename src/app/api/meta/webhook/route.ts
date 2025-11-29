@@ -2,23 +2,11 @@
 
 import {NextRequest, NextResponse} from 'next/server';
 import {db} from '@/db';
-import {tenants} from '@/db/schema';
-import {eq} from 'drizzle-orm';
+import {conversations, messages, tenants} from '@/db/schema';
+import {and, eq} from 'drizzle-orm';
 
 /**
  * Handles Meta webhook verification (GET) and incoming messages (POST).
- *
- * Webhook Verification:
- * Meta sends a GET request to this endpoint to verify its authenticity.
- * The request contains `hub.mode`, `hub.challenge`, and `hub.verify_token`.
- * We must check if `hub.verify_token` matches the one stored for the tenant
- * and respond with `hub.challenge`.
- *
- * Incoming Messages:
- * Meta sends a POST request with the message payload.
- * For now, we will log this payload to the console. In a production app,
- * this is where you would process the message, save it to the database,
-
  */
 export async function GET(req: NextRequest) {
   const {searchParams} = new URL(req.url);
@@ -26,9 +14,6 @@ export async function GET(req: NextRequest) {
   const challenge = searchParams.get('hub.challenge');
   const verifyToken = searchParams.get('hub.verify_token');
 
-  // A tenant identifier is needed to look up the correct verify token.
-  // This could be passed as a query parameter or derived from the host.
-  // For this example, we'll assume a query param `tenant_subdomain`.
   const tenantSubdomain = searchParams.get('tenant_subdomain');
 
   if (!tenantSubdomain) {
@@ -41,7 +26,6 @@ export async function GET(req: NextRequest) {
       if (!db) {
         throw new Error('Database not connected');
       }
-      // Fetch the tenant's expected verify token from your database
       const tenant = await db.query.tenants.findFirst({
         where: eq(tenants.subdomain, tenantSubdomain),
         columns: {
@@ -66,15 +50,79 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
+  const {searchParams} = new URL(req.url);
+  const tenantSubdomain = searchParams.get('tenant_subdomain');
+  
+  if (!db) {
+      console.error('Webhook processing failed: Database not connected');
+      return NextResponse.json({ error: "Database not configured" }, { status: 500 });
+  }
+
+  if (!tenantSubdomain) {
+    console.error('Webhook processing failed: Missing tenant_subdomain');
+    return NextResponse.json({error: 'Tenant identifier is required'}, {status: 400});
+  }
+
   try {
+    const tenant = await db.query.tenants.findFirst({
+        where: eq(tenants.subdomain, tenantSubdomain),
+    });
+
+    if (!tenant) {
+        console.error(`Webhook processing failed: Tenant not found for subdomain ${tenantSubdomain}`);
+        return NextResponse.json({ error: "Tenant not found" }, { status: 404 });
+    }
+
     const payload = await req.json();
     console.log('Received webhook payload:', JSON.stringify(payload, null, 2));
 
-    // TODO: Process the incoming message payload here.
-    // 1. Identify the tenant based on the request.
-    // 2. Parse the message content, sender ID, etc.
-    // 3. Save the message to the `conversations` table in your database.
-    // 4. Potentially trigger a push notification or an AI summary job.
+    // Process WhatsApp messages
+    if (payload.object === 'whatsapp_business_account') {
+      for (const entry of payload.entry) {
+        for (const change of entry.changes) {
+          if (change.field === 'messages') {
+            const messageData = change.value.messages[0];
+            if (messageData && messageData.type === 'text') {
+              const from = messageData.from; // Customer's phone number
+              const customerName = change.value.contacts[0].profile.name;
+              const text = messageData.text.body;
+
+              // 1. Find or create the conversation
+              let conversation = await db.query.conversations.findFirst({
+                where: and(eq(conversations.tenantId, tenant.id), eq(conversations.customerId, from)),
+              });
+
+              if (!conversation) {
+                const newConversation = await db.insert(conversations).values({
+                    tenantId: tenant.id,
+                    customerId: from,
+                    customerName: customerName,
+                    platform: 'WhatsApp',
+                    avatarUrl: `https://i.pravatar.cc/150?u=${from}`
+                }).returning();
+                conversation = newConversation[0];
+              }
+
+              if (conversation) {
+                 // 2. Save the message
+                await db.insert(messages).values({
+                    conversationId: conversation.id,
+                    sender: 'customer',
+                    content: text,
+                });
+
+                // 3. Update last message timestamp
+                await db.update(conversations)
+                    .set({ lastMessageAt: new Date() })
+                    .where(eq(conversations.id, conversation.id));
+
+                // TODO: Here you could trigger AI summarization or other jobs
+              }
+            }
+          }
+        }
+      }
+    }
 
     return NextResponse.json({status: 'success'}, {status: 200});
   } catch (error) {

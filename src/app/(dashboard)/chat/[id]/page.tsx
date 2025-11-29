@@ -18,11 +18,12 @@ import { generateSuggestedReply } from "@/ai/flows/ai-suggested-reply";
 import { Skeleton } from '@/components/ui/skeleton';
 
 async function AISuggestion({ conversationText, tenantId }: { conversationText: string, tenantId: number }) {
+    // Note: AI suggestions might need adjustment based on the new message structure
     const suggestion = await generateSuggestedReply({
         tenantId,
         conversationHistory: conversationText,
         userMessage: "",
-        businessContext: "We are a local momo shop."
+        businessContext: "We are a local business."
     });
 
     return (
@@ -92,7 +93,7 @@ export default async function ChatConversationPage({
                         {format(new Date(message.timestamp), 'p')}
                     </time>
                     </div>
-                ))}
+                )).reverse()}
             </div>
         </ScrollArea>
       </CardContent>

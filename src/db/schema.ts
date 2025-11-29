@@ -17,6 +17,7 @@ export const tenantTierEnum = pgEnum('tenant_tier', ['free', 'pro', 'enterprise'
 export const orderStatusEnum = pgEnum('order_status', ['Pending', 'Paid', 'Shipped', 'Completed', 'Cancelled', 'Udhaari']);
 export const paymentMethodEnum = pgEnum('payment_method', ['eSewa', 'Khalti', 'FonePay', 'Cash', 'Udhaari']);
 export const conversationPlatformEnum = pgEnum('conversation_platform', ['WhatsApp', 'Messenger', 'Instagram']);
+export const messageSenderEnum = pgEnum('message_sender', ['customer', 'business']);
 
 // Tenants Table
 export const tenants = pgTable('tenants', {
@@ -83,6 +84,15 @@ export const conversations = pgTable('conversations', {
   lastMessageAt: timestamp('last_message_at').defaultNow().notNull(),
 });
 
+// Messages Table
+export const messages = pgTable('messages', {
+  id: serial('id').primaryKey(),
+  conversationId: integer('conversation_id').references(() => conversations.id, { onDelete: 'cascade' }).notNull(),
+  sender: messageSenderEnum('sender').notNull(),
+  content: text('content').notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
 
 // Relations
 export const tenantRelations = relations(tenants, ({ many }) => ({
@@ -97,4 +107,19 @@ export const userRelations = relations(users, ({ one }) => ({
     fields: [users.tenantId],
     references: [tenants.id],
   }),
+}));
+
+export const conversationRelations = relations(conversations, ({ one, many }) => ({
+    tenant: one(tenants, {
+        fields: [conversations.tenantId],
+        references: [tenants.id],
+    }),
+    messages: many(messages),
+}));
+
+export const messageRelations = relations(messages, ({ one }) => ({
+    conversation: one(conversations, {
+        fields: [messages.conversationId],
+        references: [conversations.id],
+    }),
 }));

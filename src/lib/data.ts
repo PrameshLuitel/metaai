@@ -1,7 +1,7 @@
-import type { InventoryItem, Order, Conversation, UserProfile } from '@/lib/types';
+import type { InventoryItem, Order, Conversation, UserProfile, ChatMessage } from '@/lib/types';
 import { db } from '@/db';
-import { inventory as inventoryTable, orders as ordersTable, conversations as conversationsTable, users as usersTable } from '@/db/schema';
-import { eq } from 'drizzle-orm';
+import { inventory as inventoryTable, orders as ordersTable, conversations as conversationsTable, users as usersTable, messages as messagesTable } from '@/db/schema';
+import { eq, desc } from 'drizzle-orm';
 
 // Server Actions
 export async function getInventory(): Promise<InventoryItem[]> {
@@ -45,23 +45,31 @@ export async function getOrders(): Promise<Order[]> {
 export async function getConversations(): Promise<Conversation[]> {
     if (!db) return [];
     try {
-        const data = await db.select().from(conversationsTable);
-        // Map to Conversation type, assuming schema matches
+        const data = await db.query.conversations.findMany({
+            orderBy: [desc(conversationsTable.lastMessageAt)],
+            with: {
+                messages: {
+                    orderBy: [desc(messagesTable.createdAt)],
+                    limit: 1,
+                }
+            }
+        });
+        
         return data.map(convo => ({
-            id: String(convo.id), // Ensure id is a string
+            id: String(convo.id),
             platform: convo.platform,
             customerId: convo.customerId,
             customerName: convo.customerName || 'Unknown',
-            lastMessage: "Click to view", // Placeholder, as we don't store this directly
+            lastMessage: convo.messages[0]?.content || "No messages yet",
             lastMessageAt: new Date(convo.lastMessageAt),
             sentimentScore: Number(convo.sentimentScore),
             aiSummary: convo.aiSummary || null,
             unreadCount: 0, // This would need a separate tracking mechanism
             avatarUrl: convo.avatarUrl ?? undefined,
-            messages: [], // Messages would need to be fetched on demand
+            messages: [], // Full messages are fetched on demand
         }));
     } catch (error) {
-        console.error("Database Error:", error);
+        console.error("Database Error getting conversations:", error);
         return [];
     }
 }
@@ -70,35 +78,42 @@ export async function getConversations(): Promise<Conversation[]> {
 export async function getConversationById(id: string): Promise<Conversation | null> {
     if (!db) return null;
     try {
-        const conversationArray = await db.select().from(conversationsTable).where(
-            eq(conversationsTable.id, parseInt(id, 10))
-        ).limit(1);
+        const conversationId = parseInt(id, 10);
+        if (isNaN(conversationId)) return null;
 
-        if (conversationArray.length === 0) {
+        const convo = await db.query.conversations.findFirst({
+            where: eq(conversationsTable.id, conversationId),
+            with: {
+                messages: {
+                    orderBy: [desc(messagesTable.createdAt)]
+                }
+            }
+        });
+
+        if (!convo) {
             return null;
         }
-        const convo = conversationArray[0];
-        // In a real app, you would fetch messages for this conversation
-        // For now, returning mock messages
+
         return {
             id: String(convo.id),
             platform: convo.platform,
             customerId: convo.customerId,
             customerName: convo.customerName || 'Unknown',
-            lastMessage: "Click to view",
+            lastMessage: convo.messages[0]?.content || "No messages yet",
             lastMessageAt: new Date(convo.lastMessageAt),
             sentimentScore: Number(convo.sentimentScore),
             aiSummary: convo.aiSummary || null,
             unreadCount: 0,
             avatarUrl: convo.avatarUrl ?? undefined,
-            messages: [
-                { id: 'msg1', from: 'customer', text: 'Hello, I have a question about my order.', timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000) },
-                { id: 'msg2', from: 'business', text: 'Of course, how can I help you?', timestamp: new Date(Date.now() - 1.9 * 60 * 60 * 1000) },
-                { id: 'msg3', from: 'customer', text: 'My tracking number is not working.', timestamp: new Date(Date.now() - 1.8 * 60 * 60 * 1000) }
-            ]
+            messages: convo.messages.map(msg => ({
+                id: String(msg.id),
+                from: msg.sender,
+                text: msg.content,
+                timestamp: new Date(msg.createdAt),
+            }))
         };
     } catch (error) {
-         console.error("Database Error:", error);
+         console.error("Database Error getting conversation by ID:", error);
         return null;
     }
 }
@@ -106,8 +121,8 @@ export async function getConversationById(id: string): Promise<Conversation | nu
 export async function getUsers(): Promise<UserProfile[]> {
     if (!db) return [];
     try {
+        // In a real app, you'd likely want to filter by tenantId from session
         const data = await db.select().from(usersTable);
-        // In a real app, you'd likely want to filter by tenantId
         return data.map(user => ({
             id: user.id,
             tenantId: String(user.tenantId),
@@ -117,7 +132,7 @@ export async function getUsers(): Promise<UserProfile[]> {
             avatarUrl: user.avatarUrl || null,
         }));
     } catch (error) {
-        console.error("Database Error:", error);
+        console.error("Database Error getting users:", error);
         return [];
     }
 }
