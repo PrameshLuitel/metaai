@@ -1,3 +1,4 @@
+import React from 'react';
 import { getConversationById } from "@/lib/data";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -15,6 +16,7 @@ import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { generateSuggestedReply } from "@/ai/flows/ai-suggested-reply";
+import { Skeleton } from '@/components/ui/skeleton';
 
 async function AISuggestion({ conversationText }: { conversationText: string }) {
     const suggestion = await generateSuggestedReply({
@@ -29,6 +31,10 @@ async function AISuggestion({ conversationText }: { conversationText: string }) 
             <span>{suggestion.suggestedReply}</span>
         </Button>
     )
+}
+
+function AISuggestionFallback() {
+    return <Skeleton className="h-8 w-48" />
 }
 
 export default async function ChatConversationPage({
@@ -79,7 +85,7 @@ export default async function ChatConversationPage({
                     )}
                     >
                     <p>{message.text}</p>
-                    <time className={cn("text-xs opacity-70", message.from === 'business' ? 'text-primary-foreground' : 'text-muted-foreground')}>
+                    <time className={cn("text-xs opacity-70", message.from === 'business' ? 'text-primary-foreground/80' : 'text-muted-foreground')}>
                         {format(new Date(message.timestamp), 'p')}
                     </time>
                     </div>
@@ -89,7 +95,7 @@ export default async function ChatConversationPage({
       </CardContent>
       <CardFooter className="flex-col items-start gap-2 border-t p-4">
         <div className="flex w-full items-center gap-2">
-            <React.Suspense fallback={<p className="text-sm text-muted-foreground">Getting AI suggestions...</p>}>
+            <React.Suspense fallback={<AISuggestionFallback />}>
                 <AISuggestion conversationText={conversationTextForAI} />
             </React.Suspense>
         </div>
