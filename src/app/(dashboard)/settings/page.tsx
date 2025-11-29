@@ -22,22 +22,12 @@ import {
 } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { llmProviderEnum } from "@/db/schema";
 
 // Mock data, in a real app this would come from your database/API
 const users = [
     { name: 'Admin User', email: 'admin@vyaparos.com', role: 'admin' },
     { name: 'Staff User', email: 'staff@vyaparos.com', role: 'staff' },
 ];
-
-const llmProviders = llmProviderEnum.enumValues;
 
 export default function SettingsPage() {
   return (
@@ -83,18 +73,10 @@ export default function SettingsPage() {
           <CardContent className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="llmProvider">LLM Provider</Label>
-               <Select defaultValue="gemini">
-                <SelectTrigger id="llmProvider">
-                  <SelectValue placeholder="Select a provider" />
-                </SelectTrigger>
-                <SelectContent>
-                  {llmProviders.map((provider) => (
-                    <SelectItem key={provider} value={provider}>
-                      {provider.charAt(0).toUpperCase() + provider.slice(1)}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Input id="llmProvider" placeholder="e.g., gemini, openai" defaultValue="gemini" />
+              <p className="text-xs text-muted-foreground">
+                Enter the name of your LLM provider. Make sure the backend supports it.
+              </p>
             </div>
             <div className="space-y-2">
               <Label htmlFor="llmApiKey">API Key</Label>
