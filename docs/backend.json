@@ -1,0 +1,427 @@
+{
+  "entities": {
+    "Tenant": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Tenant",
+      "type": "object",
+      "description": "Represents a tenant (business) in the VyaparOS platform.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Tenant entity."
+        },
+        "subdomain": {
+          "type": "string",
+          "description": "Subdomain used to access the tenant's instance."
+        },
+        "businessName": {
+          "type": "string",
+          "description": "Name of the business."
+        },
+        "tier": {
+          "type": "string",
+          "description": "Subscription tier of the tenant (e.g., Free, Basic, Premium)."
+        }
+      },
+      "required": [
+        "id",
+        "subdomain",
+        "businessName",
+        "tier"
+      ]
+    },
+    "User": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "User",
+      "type": "object",
+      "description": "Represents a user within a tenant.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the User entity."
+        },
+        "authId": {
+          "type": "string",
+          "description": "Identifier from the external authentication system (e.g., Clerk ID)."
+        },
+        "role": {
+          "type": "string",
+          "description": "Role of the user within the tenant (e.g., Admin, Employee)."
+        },
+        "tenantId": {
+          "type": "string",
+          "description": "Reference to Tenant. (Relationship: Tenant 1:N User)"
+        }
+      },
+      "required": [
+        "id",
+        "authId",
+        "role",
+        "tenantId"
+      ]
+    },
+    "Inventory": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Inventory",
+      "type": "object",
+      "description": "Represents a product in the inventory.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Inventory entity."
+        },
+        "tenantId": {
+          "type": "string",
+          "description": "Reference to Tenant. (Relationship: Tenant 1:N Inventory)"
+        },
+        "name": {
+          "type": "string",
+          "description": "Name of the product."
+        },
+        "variant": {
+          "type": "string",
+          "description": "Variant of the product (e.g., size, color)."
+        },
+        "priceNpr": {
+          "type": "number",
+          "description": "Price of the product in NPR."
+        },
+        "stock": {
+          "type": "number",
+          "description": "Current stock level of the product."
+        },
+        "lowStockThreshold": {
+          "type": "number",
+          "description": "Threshold at which a low stock alert is triggered."
+        }
+      },
+      "required": [
+        "id",
+        "tenantId",
+        "name",
+        "variant",
+        "priceNpr",
+        "stock",
+        "lowStockThreshold"
+      ]
+    },
+    "Order": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Order",
+      "type": "object",
+      "description": "Represents a customer order.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Order entity."
+        },
+        "tenantId": {
+          "type": "string",
+          "description": "Reference to Tenant. (Relationship: Tenant 1:N Order)"
+        },
+        "customerName": {
+          "type": "string",
+          "description": "Name of the customer who placed the order."
+        },
+        "status": {
+          "type": "string",
+          "description": "Status of the order (e.g., Pending, Processing, Shipped, Delivered)."
+        },
+        "paymentMethod": {
+          "type": "string",
+          "description": "Payment method used for the order (e.g., eSewa, Khalti, FonePay, Udhaari)."
+        },
+        "proofScreenshotUrl": {
+          "type": "string",
+          "description": "URL of the screenshot providing proof of payment (if applicable).",
+          "format": "uri"
+        },
+        "orderItems": {
+          "type": "array",
+          "description": "References to OrderItem. (Relationship: Order 1:N OrderItem)",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "id",
+        "tenantId",
+        "customerName",
+        "status",
+        "paymentMethod"
+      ]
+    },
+    "OrderItem": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "OrderItem",
+      "type": "object",
+      "description": "Represents an item in an order.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the OrderItem entity."
+        },
+        "orderId": {
+          "type": "string",
+          "description": "Reference to Order. (Relationship: Order 1:N OrderItem)"
+        },
+        "inventoryId": {
+          "type": "string",
+          "description": "Reference to Inventory. (Relationship: Inventory 1:N OrderItem)"
+        },
+        "quantity": {
+          "type": "number",
+          "description": "Quantity of the item in the order."
+        },
+        "price": {
+          "type": "number",
+          "description": "Price of item at time of order (in NPR)"
+        }
+      },
+      "required": [
+        "id",
+        "orderId",
+        "inventoryId",
+        "quantity",
+        "price"
+      ]
+    },
+    "Conversation": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Conversation",
+      "type": "object",
+      "description": "Represents a conversation with a customer.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Conversation entity."
+        },
+        "tenantId": {
+          "type": "string",
+          "description": "Reference to Tenant. (Relationship: Tenant 1:N Conversation)"
+        },
+        "platform": {
+          "type": "string",
+          "description": "Platform used for the conversation (e.g., WhatsApp, Facebook Messenger)."
+        },
+        "customerId": {
+          "type": "string",
+          "description": "Identifier of the customer on the platform."
+        },
+        "sentimentScore": {
+          "type": "number",
+          "description": "Sentiment score of the conversation (e.g., -1 to 1)."
+        },
+        "aiSummary": {
+          "type": "string",
+          "description": "AI-generated summary of the conversation."
+        }
+      },
+      "required": [
+        "id",
+        "tenantId",
+        "platform",
+        "customerId",
+        "sentimentScore",
+        "aiSummary"
+      ]
+    },
+    "UdhaariTransaction": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "UdhaariTransaction",
+      "type": "object",
+      "description": "Represents a credit (Udhaari) transaction.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the UdhaariTransaction entity."
+        },
+        "tenantId": {
+          "type": "string",
+          "description": "Reference to Tenant. (Relationship: Tenant 1:N UdhaariTransaction)"
+        },
+        "orderId": {
+          "type": "string",
+          "description": "Reference to Order. (Relationship: Order 1:N UdhaariTransaction)"
+        },
+        "customerId": {
+          "type": "string",
+          "description": "Identifier of the customer who received the credit."
+        },
+        "amountNpr": {
+          "type": "number",
+          "description": "Amount of credit extended in NPR."
+        },
+        "transactionDate": {
+          "type": "string",
+          "description": "Date of the transaction.",
+          "format": "date-time"
+        },
+        "description": {
+          "type": "string",
+          "description": "Description of transaction for clarification."
+        }
+      },
+      "required": [
+        "id",
+        "tenantId",
+        "orderId",
+        "customerId",
+        "amountNpr",
+        "transactionDate"
+      ]
+    }
+  },
+  "auth": {
+    "providers": [
+      "password",
+      "anonymous"
+    ]
+  },
+  "firestore": {
+    "structure": [
+      {
+        "path": "/tenants/{tenantId}",
+        "definition": {
+          "entityName": "Tenant",
+          "schema": {
+            "$ref": "#/backend/entities/Tenant"
+          },
+          "description": "Stores tenant-specific information.  This is the root level for all tenant-related data.",
+          "params": [
+            {
+              "name": "tenantId",
+              "description": "Unique identifier for the tenant."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/tenants/{tenantId}/users/{userId}",
+        "definition": {
+          "entityName": "User",
+          "schema": {
+            "$ref": "#/backend/entities/User"
+          },
+          "description": "Stores user information within a tenant. Path enables ownership-based security rules based on tenantId, ensuring tenant isolation.",
+          "params": [
+            {
+              "name": "tenantId",
+              "description": "Unique identifier for the tenant."
+            },
+            {
+              "name": "userId",
+              "description": "Unique identifier for the user."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/tenants/{tenantId}/inventory/{inventoryId}",
+        "definition": {
+          "entityName": "Inventory",
+          "schema": {
+            "$ref": "#/backend/entities/Inventory"
+          },
+          "description": "Stores inventory items specific to a tenant. Provides tenant-level isolation of inventory data.",
+          "params": [
+            {
+              "name": "tenantId",
+              "description": "Unique identifier for the tenant."
+            },
+            {
+              "name": "inventoryId",
+              "description": "Unique identifier for the inventory item."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/tenants/{tenantId}/orders/{orderId}",
+        "definition": {
+          "entityName": "Order",
+          "schema": {
+            "$ref": "#/backend/entities/Order"
+          },
+          "description": "Stores order information specific to a tenant. Provides tenant-level isolation of order data.",
+          "params": [
+            {
+              "name": "tenantId",
+              "description": "Unique identifier for the tenant."
+            },
+            {
+              "name": "orderId",
+              "description": "Unique identifier for the order."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/tenants/{tenantId}/orders/{orderId}/orderItems/{orderItemId}",
+        "definition": {
+          "entityName": "OrderItem",
+          "schema": {
+            "$ref": "#/backend/entities/OrderItem"
+          },
+          "description": "Stores order items within an order, specific to a tenant. Scoped to the tenant and the order. ",
+          "params": [
+            {
+              "name": "tenantId",
+              "description": "Unique identifier for the tenant."
+            },
+            {
+              "name": "orderId",
+              "description": "Unique identifier for the order."
+            },
+            {
+              "name": "orderItemId",
+              "description": "Unique identifier for the order item."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/tenants/{tenantId}/conversations/{conversationId}",
+        "definition": {
+          "entityName": "Conversation",
+          "schema": {
+            "$ref": "#/backend/entities/Conversation"
+          },
+          "description": "Stores conversation data specific to a tenant.",
+          "params": [
+            {
+              "name": "tenantId",
+              "description": "Unique identifier for the tenant."
+            },
+            {
+              "name": "conversationId",
+              "description": "Unique identifier for the conversation."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/tenants/{tenantId}/udhaariTransactions/{udhaariTransactionId}",
+        "definition": {
+          "entityName": "UdhaariTransaction",
+          "schema": {
+            "$ref": "#/backend/entities/UdhaariTransaction"
+          },
+          "description": "Stores Udhaari (credit) transactions specific to a tenant.",
+          "params": [
+            {
+              "name": "tenantId",
+              "description": "Unique identifier for the tenant."
+            },
+            {
+              "name": "udhaariTransactionId",
+              "description": "Unique identifier for the Udhaari transaction."
+            }
+          ]
+        }
+      }
+    ],
+    "reasoning": "The Firestore data structure is designed to support a multi-tenant application (VyaparOS) with a focus on authorization independence, scalability, and clear security rules.  Each tenant's data is isolated under a dedicated collection group.  Authorization is primarily path-based for user-owned data and utilizes membership maps where collaborative access is required.  This avoids complex `get()` calls in security rules.\n\n*   `/tenants/{tenantId}`: Stores tenant-specific information. This is the root level for all tenant-related data.\n*   `/tenants/{tenantId}/users/{userId}`: Stores user information. This path enables simple ownership-based security rules, ensuring that only a tenant administrator can manage users within that tenant. The `authId` field links to the authentication system.\n*   `/tenants/{tenantId}/inventory/{inventoryId}`: Stores inventory items. Data is scoped to the tenant.\n*   `/tenants/{tenantId}/orders/{orderId}`: Stores order information. Data is scoped to the tenant.\n*   `/tenants/{tenantId}/orders/{orderId}/orderItems/{orderItemId}`: Stores order items related to the order. Data is scoped to the order.\n*   `/tenants/{tenantId}/conversations/{conversationId}`: Stores conversation data.  Data is scoped to the tenant.\n*   `/tenants/{tenantId}/udhaariTransactions/{udhaariTransactionId}`: Stores Udhaari transactions. Data is scoped to the tenant.\n\n**Authorization Independence (Denormalization):**\n\n*   Since all subcollections are scoped to a tenant, access is controlled by verifying the `tenantId` in the request and matching it against the `tenantId` in the document.  This approach avoids the need to read the parent `tenant` document to authorize access to subcollections. This means all authorization can occur directly on the target document, enabling atomic operations.\n\n**QAPs (Rules are not Filters):**\n\n*   The data segregation by tenant (`/tenants/{tenantId}`) ensures that list operations are always scoped to a specific tenant. A user can only list resources within their assigned tenant.\n\nThis structure promotes clear security rules by:"
+  }
+}

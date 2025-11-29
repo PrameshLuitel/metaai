@@ -1,0 +1,202 @@
+/**
+ * Core Philosophy: This ruleset enforces a strict multi-tenant security model.
+ * All data is isolated within a specific tenant's data tree, and access is
+ * granted based on a user's verified membership within that tenant. This prevents
+ * any user or data from one business from leaking to another.
+ *
+ * Data Structure: All application data is nested under a top-level `tenants`
+ * collection. The structure is hierarchical: /tenants/{tenantId}/{collection}/{docId}.
+ * This ensures that all queries and operations are naturally scoped to a single tenant.
+ *
+ * Key Security Decisions:
+ * - Tenant Isolation: The primary security boundary is the `tenantId`. A user can
+ *   only ever interact with data matching their assigned tenant ID.
+ * - Role-Based Access (RBAC): User management within a tenant is restricted to
+ *   users with an 'Admin' role.
+ * - No Public Access: There are no publicly readable collections. A user must be
+ *   authenticated and a member of a tenant to read any data.
+ * - Destructive Operations: Deleting a tenant's root document is disallowed from
+ *   the client to prevent catastrophic data loss. This must be a trusted server process.
+ *
+ * Denormalization for Authorization:
+ * To ensure fast and secure authorization checks, this ruleset relies on custom
+ * claims being set in the user's authentication token. Each signed-in user's token
+ * MUST contain their `tenantId` and `role`.
+ *
+ * Example Custom Claim:
+ * {
+ *   "tenantId": "tenant-abc-123",
+ *   "role": "Admin"
+ * }
+ *
+ * This avoids costly and slow `get()` lookups in every rule, making the system
+ * more performant and secure.
+ */
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ------------------------------------------------------------------------
+    // Helper Functions
+    // ------------------------------------------------------------------------
+
+    /**
+     * Returns true if the user is authenticated.
+     */
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    /**
+     * Returns true if the user's auth token contains a claim for the given tenantId.
+     * This is the primary function for enforcing tenant data isolation.
+     */
+    function isTenantMember(tenantId) {
+      return isSignedIn() && request.auth.token.tenantId == tenantId;
+    }
+
+    /**
+     * Returns true if the user is a member of the tenant and has the 'Admin' role.
+     * Used for privileged actions like managing other users.
+     */
+    function isTenantAdmin(tenantId) {
+      return isTenantMember(tenantId) && request.auth.token.role == 'Admin';
+    }
+
+
+    // ------------------------------------------------------------------------
+    // Tenant Rules
+    // ------------------------------------------------------------------------
+
+    /**
+     * @description Controls access to the root tenant document.
+     * @path /tenants/{tenantId}
+     * @allow (get) A user who is a member of 'tenant-A' getting their own tenant document.
+     * @deny (list) Any user trying to list all tenants in the system.
+     * @deny (create) Any client trying to create a new tenant document.
+     * @principle Restricts high-level data access to members of that data scope. Disallows listing and client-side creation of tenants for security.
+     */
+    match /tenants/{tenantId} {
+      allow get: if isTenantMember(tenantId);
+      allow list: if false;
+      allow create: if false;
+      allow update: if isTenantAdmin(tenantId) && resource != null;
+      allow delete: if false;
+
+      // ----------------------------------------------------------------------
+      // User Rules
+      // ----------------------------------------------------------------------
+
+      /**
+       * @description Controls access to user documents within a tenant.
+       * @path /tenants/{tenantId}/users/{userId}
+       * @allow (create) An 'Admin' of 'tenant-A' creating a new user document within their tenant.
+       * @allow (list) An 'Employee' of 'tenant-A' listing all other users in their tenant.
+       * @deny (update) An 'Employee' of 'tenant-A' trying to change another user's role.
+       * @principle Enforces Role-Based Access Control (RBAC) for managing users within a tenant.
+       */
+      match /users/{userId} {
+        allow get: if isTenantMember(tenantId);
+        allow list: if isTenantMember(tenantId);
+        allow create: if isTenantAdmin(tenantId) && request.resource.data.tenantId == tenantId;
+        allow update: if isTenantAdmin(tenantId) && resource != null && request.resource.data.tenantId == resource.data.tenantId;
+        allow delete: if isTenantAdmin(tenantId) && resource != null;
+      }
+
+      // ----------------------------------------------------------------------
+      // Inventory Rules
+      // ----------------------------------------------------------------------
+
+      /**
+       * @description Controls access to a tenant's inventory data.
+       * @path /tenants/{tenantId}/inventory/{inventoryId}
+       * @allow (create) Any authenticated member of 'tenant-A' adding a new inventory item.
+       * @allow (get) Any authenticated member of 'tenant-A' reading an inventory item.
+       * @deny (update) A user from 'tenant-B' trying to update an inventory item in 'tenant-A'.
+       * @principle Enforces strict tenant data isolation. All members of a tenant can manage shared tenant resources.
+       */
+      match /inventory/{inventoryId} {
+        allow get: if isTenantMember(tenantId);
+        allow list: if isTenantMember(tenantId);
+        allow create: if isTenantMember(tenantId) && request.resource.data.tenantId == tenantId;
+        allow update: if isTenantMember(tenantId) && resource != null && request.resource.data.tenantId == resource.data.tenantId;
+        allow delete: if isTenantMember(tenantId) && resource != null;
+      }
+
+      // ----------------------------------------------------------------------
+      // Order Rules
+      // ----------------------------------------------------------------------
+
+      /**
+       * @description Controls access to a tenant's order data.
+       * @path /tenants/{tenantId}/orders/{orderId}
+       * @allow (create) Any authenticated member of 'tenant-A' creating a new order.
+       * @allow (list) Any authenticated member of 'tenant-A' listing all orders.
+       * @deny (get) A user from 'tenant-B' trying to read an order from 'tenant-A'.
+       * @principle Enforces strict tenant data isolation. All members of a tenant can manage shared tenant resources.
+       */
+      match /orders/{orderId} {
+        allow get: if isTenantMember(tenantId);
+        allow list: if isTenantMember(tenantId);
+        allow create: if isTenantMember(tenantId) && request.resource.data.tenantId == tenantId;
+        allow update: if isTenantMember(tenantId) && resource != null && request.resource.data.tenantId == resource.data.tenantId;
+        allow delete: if isTenantMember(tenantId) && resource != null;
+
+        /**
+         * @description Controls access to items within a specific order.
+         * @path /tenants/{tenantId}/orders/{orderId}/orderItems/{orderItemId}
+         * @allow (create) Any member of 'tenant-A' adding an item to an order in 'tenant-A'.
+         * @deny (delete) A user from 'tenant-B' trying to delete an order item from an order in 'tenant-A'.
+         * @principle Inherits tenant isolation from its parent and validates relational integrity with the parent order document.
+         */
+        match /orderItems/{orderItemId} {
+          allow get: if isTenantMember(tenantId);
+          allow list: if isTenantMember(tenantId);
+          allow create: if isTenantMember(tenantId) && request.resource.data.orderId == orderId;
+          allow update: if isTenantMember(tenantId) && resource != null && request.resource.data.orderId == resource.data.orderId;
+          allow delete: if isTenantMember(tenantId) && resource != null;
+        }
+      }
+
+      // ----------------------------------------------------------------------
+      // Conversation Rules
+      // ----------------------------------------------------------------------
+
+      /**
+       * @description Controls access to a tenant's conversation data.
+       * @path /tenants/{tenantId}/conversations/{conversationId}
+       * @allow (create) Any authenticated member of 'tenant-A' creating a new conversation record.
+       * @allow (get) Any authenticated member of 'tenant-A' reading a conversation record.
+       * @deny (update) A user from 'tenant-B' trying to update a conversation in 'tenant-A'.
+       * @principle Enforces strict tenant data isolation for all conversation data.
+       */
+      match /conversations/{conversationId} {
+        allow get: if isTenantMember(tenantId);
+        allow list: if isTenantMember(tenantId);
+        allow create: if isTenantMember(tenantId) && request.resource.data.tenantId == tenantId;
+        allow update: if isTenantMember(tenantId) && resource != null && request.resource.data.tenantId == resource.data.tenantId;
+        allow delete: if isTenantMember(tenantId) && resource != null;
+      }
+
+      // ----------------------------------------------------------------------
+      // Udhaari Transaction Rules
+      // ----------------------------------------------------------------------
+
+      /**
+       * @description Controls access to a tenant's Udhaari (credit) transactions.
+       * @path /tenants/{tenantId}/udhaariTransactions/{udhaariTransactionId}
+       * @allow (create) Any authenticated member of 'tenant-A' creating a new transaction.
+       * @allow (list) Any authenticated member of 'tenant-A' listing all transactions.
+       * @deny (get) A user from 'tenant-B' trying to read a transaction from 'tenant-A'.
+       * @principle Enforces strict tenant data isolation for sensitive financial transaction data.
+       */
+      match /udhaariTransactions/{udhaariTransactionId} {
+        allow get: if isTenantMember(tenantId);
+        allow list: if isTenantMember(tenantId);
+        allow create: if isTenantMember(tenantId) && request.resource.data.tenantId == tenantId;
+        allow update: if isTenantMember(tenantId) && resource != null && request.resource.data.tenantId == resource.data.tenantId;
+        allow delete: if isTenantMember(tenantId) && resource != null;
+      }
+    }
+  }
+}
