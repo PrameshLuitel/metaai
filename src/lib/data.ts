@@ -1,7 +1,7 @@
 import type { InventoryItem, Order, Conversation } from '@/lib/types';
-// import { db } from '@/db';
-// import { inventory as inventoryTable, orders as ordersTable, conversations as conversationsTable } from '@/db/schema';
-// import { eq } from 'drizzle-orm';
+import { db } from '@/db';
+import { inventory as inventoryTable, orders as ordersTable, conversations as conversationsTable } from '@/db/schema';
+import { eq } from 'drizzle-orm';
 
 const MOCK_INVENTORY: InventoryItem[] = [
     { id: 1, name: 'Steamed Momos (Buff)', variant: '10 pcs', priceNpr: 200, stock: 50, lowStockThreshold: 10, imageUrl: "https://images.unsplash.com/photo-1696233022180-b42b5c787ad7?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxtb21vJTIwZHVtcGxpbmd8ZW58MHx8fHwxNzY0NDExMzk5fDA&ixlib=rb-4.1.0&q=80&w=1080" },
@@ -26,89 +26,108 @@ const MOCK_CONVERSATIONS: Conversation[] = [
 
 // Server Actions
 export async function getInventory(): Promise<InventoryItem[]> {
-    // try {
-    //     const data = await db.select().from(inventoryTable);
-    //     // Map to InventoryItem type, assuming schema matches
-    //     return data.map(item => ({
-    //         ...item,
-    //         priceNpr: Number(item.priceNpr), // Drizzle returns decimal as string
-    //         imageUrl: item.imageUrl || undefined,
-    //     }));
-    // } catch (error) {
-    //     console.error("Database Error:", error);
-    //     return [];
-    // }
-    return MOCK_INVENTORY;
+    if (!db) return [];
+    try {
+        const data = await db.select().from(inventoryTable);
+        // Map to InventoryItem type, assuming schema matches
+        return data.map(item => ({
+            ...item,
+            priceNpr: Number(item.priceNpr), // Drizzle returns decimal as string
+            imageUrl: item.imageUrl || undefined,
+            lowStockThreshold: item.lowStockThreshold || 0
+        }));
+    } catch (error) {
+        console.error("Database Error:", error);
+        return [];
+    }
 }
 
 export async function getOrders(): Promise<Order[]> {
-    // try {
-    //     const data = await db.select().from(ordersTable);
-    //     // Map to Order type, assuming schema matches
-    //     return data.map(order => ({
-    //         ...order,
-    //         totalAmount: Number(order.totalAmount),
-    //         items: order.items as any, // Assuming 'items' is a JSON column
-    //         createdAt: new Date(order.createdAt),
-    //         proofScreenshotUrl: order.proofScreenshotUrl || null,
-    //     }));
-    // } catch (error) {
-    //     console.error("Database Error:", error);
-    //     return [];
-    // }
-    return MOCK_ORDERS;
+    if (!db) return [];
+    try {
+        const data = await db.select().from(ordersTable);
+        // Map to Order type, assuming schema matches
+        return data.map(order => ({
+            ...order,
+            totalAmount: Number(order.totalAmount),
+            items: order.items as any, // Assuming 'items' is a JSON column
+            createdAt: new Date(order.createdAt),
+            proofScreenshotUrl: order.proofScreenshotUrl || null,
+        }));
+    } catch (error) {
+        console.error("Database Error:", error);
+        return [];
+    }
 }
 
 export async function getConversations(): Promise<Conversation[]> {
-    // try {
-    //     const data = await db.select().from(conversationsTable);
-    //     // Map to Conversation type, assuming schema matches
-    //     return data.map(convo => ({
-    //         id: String(convo.id), // Ensure id is a string
-    //         platform: convo.platform,
-    //         customerId: convo.customerId,
-    //         customerName: convo.customerName || 'Unknown',
-    //         lastMessage: "Click to view", // Placeholder, as we don't store this directly
-    //         lastMessageAt: new Date(convo.lastMessageAt),
-    //         sentimentScore: Number(convo.sentimentScore),
-    //         aiSummary: convo.aiSummary || null,
-    //         unreadCount: 0, // This would need a separate tracking mechanism
-    //         avatarUrl: convo.avatarUrl || undefined,
-    //         messages: [], // Messages would need to be fetched on demand
-    //     }));
-    // } catch (error) {
-    //     console.error("Database Error:", error);
-    //     return [];
-    // }
-    return MOCK_CONVERSATIONS;
+    if (!db) return [];
+    try {
+        const data = await db.select().from(conversationsTable);
+        // Map to Conversation type, assuming schema matches
+        return data.map(convo => ({
+            id: String(convo.id), // Ensure id is a string
+            platform: convo.platform,
+            customerId: convo.customerId,
+            customerName: convo.customerName || 'Unknown',
+            lastMessage: "Click to view", // Placeholder, as we don't store this directly
+            lastMessageAt: new Date(convo.lastMessageAt),
+            sentimentScore: Number(convo.sentimentScore),
+            aiSummary: convo.aiSummary || null,
+            unreadCount: 0, // This would need a separate tracking mechanism
+            avatarUrl: convo.avatarUrl || undefined,
+            messages: [], // Messages would need to be fetched on demand
+        }));
+    } catch (error) {
+        console.error("Database Error:", error);
+        return [];
+    }
 }
 
 
 export async function getConversationById(id: string): Promise<Conversation | null> {
-    // try {
-    //     const conversationArray = await db.select().from(conversationsTable).where(
-    //         eq(conversationsTable.id, parseInt(id, 10))
-    //     ).limit(1);
+    if (!db) {
+        const convo = MOCK_CONVERSATIONS.find(c => c.id === id);
+        if (!convo) return null;
+         return {
+            ...convo,
+            messages: [
+                { id: 'msg1', from: 'customer', text: 'Hello, I have a question about my order.', timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000) },
+                { id: 'msg2', from: 'business', text: 'Of course, how can I help you?', timestamp: new Date(Date.now() - 1.9 * 60 * 60 * 1000) },
+                { id: 'msg3', from: 'customer', text: 'My tracking number is not working.', timestamp: new Date(Date.now() - 1.8 * 60 * 60 * 1000) }
+            ]
+        };
+    }
+    try {
+        const conversationArray = await db.select().from(conversationsTable).where(
+            eq(conversationsTable.id, parseInt(id, 10))
+        ).limit(1);
 
-    //     if (conversationArray.length === 0) {
-    //         return null;
-    //     }
-    //     const convo = conversationArray[0];
-    //     // In a real app, you would fetch messages for this conversation
-    //     // For now, returning mock messages
-    // } catch (error) {
-    //      console.error("Database Error:", error);
-    //     return null;
-    // }
-    const convo = MOCK_CONVERSATIONS.find(c => c.id === id);
-    if (!convo) return null;
-
-    return {
-        ...convo,
-        messages: [
-            { id: 'msg1', from: 'customer', text: 'Hello, I have a question about my order.', timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000) },
-            { id: 'msg2', from: 'business', text: 'Of course, how can I help you?', timestamp: new Date(Date.now() - 1.9 * 60 * 60 * 1000) },
-            { id: 'msg3', from: 'customer', text: 'My tracking number is not working.', timestamp: new Date(Date.now() - 1.8 * 60 * 60 * 1000) }
-        ]
-    };
+        if (conversationArray.length === 0) {
+            return null;
+        }
+        const convo = conversationArray[0];
+        // In a real app, you would fetch messages for this conversation
+        // For now, returning mock messages
+        return {
+            id: String(convo.id),
+            platform: convo.platform,
+            customerId: convo.customerId,
+            customerName: convo.customerName || 'Unknown',
+            lastMessage: "Click to view",
+            lastMessageAt: new Date(convo.lastMessageAt),
+            sentimentScore: Number(convo.sentimentScore),
+            aiSummary: convo.aiSummary || null,
+            unreadCount: 0,
+            avatarUrl: convo.avatarUrl || undefined,
+            messages: [
+                { id: 'msg1', from: 'customer', text: 'Hello, I have a question about my order.', timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000) },
+                { id: 'msg2', from: 'business', text: 'Of course, how can I help you?', timestamp: new Date(Date.now() - 1.9 * 60 * 60 * 1000) },
+                { id: 'msg3', from: 'customer', text: 'My tracking number is not working.', timestamp: new Date(Date.now() - 1.8 * 60 * 60 * 1000) }
+            ]
+        };
+    } catch (error) {
+         console.error("Database Error:", error);
+        return null;
+    }
 }
