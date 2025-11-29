@@ -26,6 +26,7 @@ import {
   Mountain,
 } from 'lucide-react';
 import Link from 'next/link';
+import { cn } from '@/lib/utils';
 
 const navItems = [
   { href: '/chat', icon: MessageCircle, label: 'Chat' },
