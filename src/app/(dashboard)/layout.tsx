@@ -7,8 +7,6 @@ import {
   SidebarHeader,
   SidebarContent,
   SidebarFooter,
-  SidebarTrigger,
-  SidebarMenu,
   SidebarMenuItem,
   SidebarMenuButton,
   SidebarInset,
@@ -73,7 +71,7 @@ export default function DashboardLayout({
           </div>
         </SidebarHeader>
         <SidebarContent>
-          <SidebarMenu>
+          <ul className="flex w-full min-w-0 flex-col gap-1">
             {navItems.map((item) => {
               const isActive = pathname.startsWith(item.href);
               return (
@@ -91,10 +89,10 @@ export default function DashboardLayout({
                 </SidebarMenuItem>
               );
             })}
-          </SidebarMenu>
+          </ul>
         </SidebarContent>
         <SidebarFooter>
-          <SidebarMenu>
+          <ul className="flex w-full min-w-0 flex-col gap-1">
             <SidebarMenuItem>
                 <SidebarMenuButton asChild isActive={pathname.startsWith('/settings')} tooltip="Settings">
                     <Link href="/settings">
@@ -103,7 +101,7 @@ export default function DashboardLayout({
                     </Link>
                 </SidebarMenuButton>
             </SidebarMenuItem>
-          </SidebarMenu>
+          </ul>
         </SidebarFooter>
       </Sidebar>
       <SidebarInset>

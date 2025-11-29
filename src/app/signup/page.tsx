@@ -54,7 +54,7 @@ export default function SignupPage() {
      <div className="flex h-screen w-full items-center justify-center bg-muted/40">
        <div className="w-full max-w-md p-4">
         <div className="mb-8 flex items-center justify-center gap-2 text-foreground">
-            <Mountain className="h-6 w-6" />
+            <Mountain className="h-6 w-6 text-primary" />
             <span className="text-xl font-semibold">VyaparOS</span>
         </div>
       <Card className="w-full">
