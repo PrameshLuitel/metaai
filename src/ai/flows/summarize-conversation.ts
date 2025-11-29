@@ -31,7 +31,7 @@ const SummarizeConversationOutputSchema = z.object({
 });
 export type SummarizeConversationOutput = z.infer<typeof SummarizeConversationOutputSchema>;
 
-async function getApiKeyForTenant(tenantId: number): Promise<string> {
+async function getTenantAiConfig(tenantId: number) {
     if (!db) {
         throw new GenkitError({
             status: 'UNAVAILABLE',
@@ -41,22 +41,23 @@ async function getApiKeyForTenant(tenantId: number): Promise<string> {
     const tenant = await db.query.tenants.findFirst({
         where: eq(tenants.id, tenantId),
         columns: {
-            geminiApiKey: true,
+            llmApiKey: true,
+            llmProvider: true,
         }
     });
 
-    if (!tenant || !tenant.geminiApiKey) {
+    if (!tenant || !tenant.llmApiKey || !tenant.llmProvider) {
         throw new GenkitError({
             status: 'NOT_FOUND',
-            message: `API key for tenant ${tenantId} not found.`,
+            message: `API key or provider for tenant ${tenantId} not found.`,
         });
     }
-    return tenant.geminiApiKey;
+    return { apiKey: tenant.llmApiKey, provider: tenant.llmProvider };
 }
 
 export async function summarizeConversation(input: SummarizeConversationInput): Promise<SummarizeConversationOutput> {
-  const apiKey = await getApiKeyForTenant(input.tenantId);
-  const ai = initAi(apiKey);
+  const { apiKey, provider } = await getTenantAiConfig(input.tenantId);
+  const ai = initAi(apiKey, provider);
 
   const summarizeConversationPrompt = ai.definePrompt({
     name: 'summarizeConversationPrompt',

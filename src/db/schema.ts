@@ -17,6 +17,7 @@ export const tenantTierEnum = pgEnum('tenant_tier', ['free', 'pro', 'enterprise'
 export const orderStatusEnum = pgEnum('order_status', ['Pending', 'Paid', 'Shipped', 'Completed', 'Cancelled', 'Udhaari']);
 export const paymentMethodEnum = pgEnum('payment_method', ['eSewa', 'Khalti', 'FonePay', 'Cash', 'Udhaari']);
 export const conversationPlatformEnum = pgEnum('conversation_platform', ['WhatsApp', 'Messenger', 'Instagram']);
+export const llmProviderEnum = pgEnum('llm_provider', ['gemini', 'openai']);
 
 // Tenants Table
 export const tenants = pgTable('tenants', {
@@ -24,7 +25,8 @@ export const tenants = pgTable('tenants', {
   subdomain: varchar('subdomain', { length: 255 }).unique().notNull(),
   businessName: varchar('business_name', { length: 255 }).notNull(),
   tier: tenantTierEnum('tier').default('free').notNull(),
-  geminiApiKey: text('gemini_api_key'), // New field for tenant-specific API key
+  llmApiKey: text('llm_api_key'),
+  llmProvider: llmProviderEnum('llm_provider').default('gemini'),
   metaAppId: text('meta_app_id'),
   metaAppSecret: text('meta_app_secret'),
   metaWebhookVerifyToken: text('meta_webhook_verify_token'),

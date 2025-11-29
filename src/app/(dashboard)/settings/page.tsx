@@ -22,12 +22,22 @@ import {
 } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { llmProviderEnum } from "@/db/schema";
 
 // Mock data, in a real app this would come from your database/API
 const users = [
     { name: 'Admin User', email: 'admin@vyaparos.com', role: 'admin' },
     { name: 'Staff User', email: 'staff@vyaparos.com', role: 'staff' },
 ];
+
+const llmProviders = llmProviderEnum.enumValues;
 
 export default function SettingsPage() {
   return (
@@ -65,15 +75,30 @@ export default function SettingsPage() {
       <TabsContent value="api">
         <Card>
           <CardHeader>
-            <CardTitle>API Keys</CardTitle>
+            <CardTitle>LLM API Keys</CardTitle>
             <CardDescription>
-              Manage API keys for integrations like Google Gemini for AI features.
+              Manage API keys for Large Language Model integrations.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="geminiApiKey">Gemini API Key</Label>
-              <Input id="geminiApiKey" type="password" placeholder="Enter your Gemini API Key" />
+              <Label htmlFor="llmProvider">LLM Provider</Label>
+               <Select defaultValue="gemini">
+                <SelectTrigger id="llmProvider">
+                  <SelectValue placeholder="Select a provider" />
+                </SelectTrigger>
+                <SelectContent>
+                  {llmProviders.map((provider) => (
+                    <SelectItem key={provider} value={provider}>
+                      {provider.charAt(0).toUpperCase() + provider.slice(1)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="llmApiKey">API Key</Label>
+              <Input id="llmApiKey" type="password" placeholder="Enter your API Key" />
             </div>
           </CardContent>
           <CardFooter>
