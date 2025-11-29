@@ -1,4 +1,3 @@
-
 'use client';
 
 import { Button } from "@/components/ui/button";
@@ -22,12 +21,80 @@ import {
 } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
+import { useQuery } from "@tanstack/react-query";
+import { getUsers } from "@/lib/data";
+import { Skeleton } from "@/components/ui/skeleton";
 
-// Mock data, in a real app this would come from your database/API
-const users = [
-    { name: 'Admin User', email: 'admin@vyaparos.com', role: 'admin' },
-    { name: 'Staff User', email: 'staff@vyaparos.com', role: 'staff' },
-];
+// This is now the source of truth for the User Management table
+function UserManagementTable() {
+    const { data: users, isLoading, isError } = useQuery({
+        queryKey: ['users'],
+        queryFn: () => getUsers(),
+    });
+
+    return (
+        <Card>
+            <CardHeader>
+                <div className="flex items-center justify-between">
+                    <div>
+                        <CardTitle>User Management</CardTitle>
+                        <CardDescription>
+                            Invite and manage users in your tenant.
+                        </CardDescription>
+                    </div>
+                    <Button>Invite User</Button>
+                </div>
+            </CardHeader>
+            <CardContent>
+                 <Table>
+                    <TableHeader>
+                        <TableRow>
+                        <TableHead>Name</TableHead>
+                        <TableHead>Email</TableHead>
+                        <TableHead>Role</TableHead>
+                        <TableHead className="text-right">Actions</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        {isLoading && (
+                            <TableRow>
+                                <TableCell colSpan={4} className="h-24 text-center">
+                                    <p>Loading users...</p>
+                                </TableCell>
+                           </TableRow>
+                        )}
+                        {isError && (
+                            <TableRow>
+                                <TableCell colSpan={4} className="h-24 text-center text-destructive">
+                                    <p>Failed to load users.</p>
+                                </TableCell>
+                           </TableRow>
+                        )}
+                        {!isLoading && !isError && users && users.map((user) => (
+                            <TableRow key={user.email}>
+                                <TableCell className="font-medium">{user.name || 'N/A'}</TableCell>
+                                <TableCell>{user.email}</TableCell>
+                                <TableCell>
+                                    <Badge variant={user.role === 'admin' ? 'default' : 'secondary'}>{user.role}</Badge>
+                                </TableCell>
+                                <TableCell className="text-right">
+                                    <Button variant="ghost" size="sm">Edit</Button>
+                                </TableCell>
+                            </TableRow>
+                        ))}
+                         {!isLoading && !isError && (!users || users.length === 0) && (
+                            <TableRow>
+                                <TableCell colSpan={4} className="h-24 text-center">
+                                    No users found.
+                                </TableCell>
+                            </TableRow>
+                        )}
+                    </TableBody>
+                </Table>
+            </CardContent>
+        </Card>
+    );
+}
 
 export default function SettingsPage() {
   return (
@@ -119,45 +186,7 @@ export default function SettingsPage() {
         </Card>
       </TabsContent>
       <TabsContent value="users">
-        <Card>
-            <CardHeader>
-                <div className="flex items-center justify-between">
-                    <div>
-                        <CardTitle>User Management</CardTitle>
-                        <CardDescription>
-                            Invite and manage users in your tenant.
-                        </CardDescription>
-                    </div>
-                    <Button>Invite User</Button>
-                </div>
-            </CardHeader>
-            <CardContent>
-                <Table>
-                <TableHeader>
-                    <TableRow>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Email</TableHead>
-                    <TableHead>Role</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
-                    </TableRow>
-                </TableHeader>
-                <TableBody>
-                    {users.map((user) => (
-                        <TableRow key={user.email}>
-                            <TableCell className="font-medium">{user.name}</TableCell>
-                            <TableCell>{user.email}</TableCell>
-                            <TableCell>
-                                <Badge variant={user.role === 'admin' ? 'default' : 'secondary'}>{user.role}</Badge>
-                            </TableCell>
-                            <TableCell className="text-right">
-                                <Button variant="ghost" size="sm">Edit</Button>
-                            </TableCell>
-                        </TableRow>
-                    ))}
-                </TableBody>
-                </Table>
-            </CardContent>
-        </Card>
+        <UserManagementTable />
       </TabsContent>
        <TabsContent value="appearance">
         <Card>
