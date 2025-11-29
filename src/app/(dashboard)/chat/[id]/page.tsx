@@ -4,6 +4,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
+  Card,
   CardContent,
   CardFooter,
   CardHeader,
@@ -55,7 +56,7 @@ export default async function ChatConversationPage({
   const MOCK_TENANT_ID = 1;
 
   return (
-    <div className="flex h-full flex-col">
+    <Card className="flex h-full w-full flex-col">
       <CardHeader className="flex flex-row items-center justify-between border-b p-4">
         <div className="flex items-center space-x-4">
           <Avatar>
@@ -75,31 +76,32 @@ export default async function ChatConversationPage({
           {conversation.sentimentScore > 0.1 ? "Positive" : conversation.sentimentScore < -0.1 ? "Negative" : "Neutral"}
         </Badge>
       </CardHeader>
-      <CardContent className="flex-1 p-0">
-        <ScrollArea className="h-[calc(100vh_-_20rem)] p-4">
-            <div className="space-y-4">
-                {conversation.messages.map((message, index) => (
-                    <div
-                    key={`${message.id}-${index}`}
-                    className={cn(
-                        "flex w-max max-w-[75%] flex-col gap-2 rounded-lg px-3 py-2 text-sm",
-                        message.from === "business"
-                        ? "ml-auto bg-primary text-primary-foreground"
-                        : "bg-muted"
-                    )}
-                    >
-                    <p>{message.text}</p>
-                    <time className={cn("text-xs opacity-70", message.from === 'business' ? 'text-primary-foreground/80' : 'text-muted-foreground')}>
-                        {format(new Date(message.timestamp), 'p')}
-                    </time>
-                    </div>
-                )).reverse()}
-            </div>
-        </ScrollArea>
+      <CardContent className="flex-1 overflow-y-auto p-4">
+        <div className="space-y-4">
+            {conversation.messages.slice().reverse().map((message, index) => (
+                <div
+                key={`${message.id}-${index}`}
+                className={cn(
+                    "flex w-max max-w-[75%] flex-col gap-2 rounded-lg px-3 py-2 text-sm",
+                    message.from === "business"
+                    ? "ml-auto bg-primary text-primary-foreground"
+                    : "bg-muted"
+                )}
+                >
+                <p>{message.text}</p>
+                <time className={cn("text-xs opacity-70", message.from === 'business' ? 'text-primary-foreground/80' : 'text-muted-foreground')}>
+                    {format(new Date(message.timestamp), 'p')}
+                </time>
+                </div>
+            ))}
+        </div>
       </CardContent>
       <CardFooter className="flex-col items-start gap-2 border-t p-4">
-        <div className="flex w-full items-center gap-2">
+        <div className="flex w-full items-center gap-2 overflow-x-auto pb-2">
             <React.Suspense fallback={<AISuggestionFallback />}>
+                <AISuggestion conversationText={conversationTextForAI} tenantId={MOCK_TENANT_ID} />
+            </React.Suspense>
+             <React.Suspense fallback={<AISuggestionFallback />}>
                 <AISuggestion conversationText={conversationTextForAI} tenantId={MOCK_TENANT_ID} />
             </React.Suspense>
         </div>
@@ -111,6 +113,6 @@ export default async function ChatConversationPage({
             </Button>
         </div>
       </CardFooter>
-    </div>
+    </Card>
   );
 }
