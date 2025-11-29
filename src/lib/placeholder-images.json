@@ -1,3 +1,46 @@
 {
-  "placeholderImages": []
+  "placeholderImages": [
+    {
+      "id": "momo-1",
+      "description": "A plate of steamed momos",
+      "imageUrl": "https://images.unsplash.com/photo-1696233022180-b42b5c787ad7?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxtb21vJTIwZHVtcGxpbmd8ZW58MHx8fHwxNzY0NDExMzk5fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "momo dumpling"
+    },
+    {
+      "id": "sukuti-1",
+      "description": "A dish of spicy buff sukuti",
+      "imageUrl": "https://images.unsplash.com/photo-1603048374877-b98f840ad441?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8ZHJpZWQlMjBtZWF0fGVufDB8fHx8MTc2NDQxMTM5OXww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "dried meat"
+    },
+    {
+      "id": "shoes-1",
+      "description": "A pair of Goldstar sneakers",
+      "imageUrl": "https://images.unsplash.com/photo-1579528542333-4148f1769c35?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHxzbmVha2VycyUyMHNob2VzfGVufDB8fHx8MTc2NDM5MjUwMHww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "sneakers shoes"
+    },
+    {
+      "id": "noodles-1",
+      "description": "A box of Wai Wai instant noodles",
+      "imageUrl": "https://images.unsplash.com/photo-1641736495436-921e490112e6?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxpbnN0YW50JTIwbm9vZGxlc3xlbnwwfHx8fDE3NjQzNzkxODF8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "instant noodles"
+    },
+    {
+      "id": "sekuwa-1",
+      "description": "Grilled pork sekuwa on skewers",
+      "imageUrl": "https://images.unsplash.com/photo-1558030137-a56c1b004fa3?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxncmlsbGVkJTIwbWVhdHxlbnwwfHx8fDE3NjQ0MTEzOTl8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "grilled meat"
+    },
+    {
+      "id": "user-avatar-1",
+      "description": "User avatar 1",
+      "imageUrl": "https://i.pravatar.cc/150?u=a042581f4e29026024d",
+      "imageHint": "person portrait"
+    },
+    {
+      "id": "user-avatar-2",
+      "description": "User avatar 2",
+      "imageUrl": "https://i.pravatar.cc/150?u=a042581f4e29026704d",
+      "imageHint": "woman portrait"
+    }
+  ]
 }
