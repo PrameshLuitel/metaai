@@ -1,17 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import {
-  Home,
-  ShoppingCart,
-  Package,
-  Users,
-  LineChart,
-  PanelLeft,
-  Search,
-  Mountain,
-  MessageCircle,
-} from 'lucide-react';
+import { Search } from 'lucide-react';
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -30,23 +20,14 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
 import React from 'react';
 import { useStore } from '@/lib/hooks/use-store';
 import { useAuth, useUser } from '@/firebase';
 import { signOut } from 'firebase/auth';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
+import { SidebarTrigger } from '../ui/sidebar';
 
-const mobileNavItems = [
-  { href: '/chat', icon: MessageCircle, label: 'Chat' },
-  { href: '/dashboard', icon: Home, label: 'Dashboard' },
-  { href: '/orders', icon: ShoppingCart, label: 'Orders' },
-  { href: '/inventory', icon: Package, label: 'Inventory' },
-  { href: '/customers', icon: Users, label: 'Customers' },
-  { href: '/analytics', icon: LineChart, label: 'Analytics' },
-];
 
 export function Header() {
   const pathname = usePathname();
@@ -64,88 +45,62 @@ export function Header() {
     const segments = pathname.split('/').filter(Boolean);
     if (segments.length === 0) return 'Dashboard';
     const lastSegment = segments[segments.length - 1];
+    if (lastSegment === 'dashboard') return 'Dashboard';
+    if (segments[0] === 'chat' && segments.length > 1) return 'Chat';
     return lastSegment.charAt(0).toUpperCase() + lastSegment.slice(1);
   }, [pathname]);
 
   return (
     <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6">
-      <Sheet>
-        <SheetTrigger asChild>
-          <Button size="icon" variant="outline" className="sm:hidden">
-            <PanelLeft className="h-5 w-5" />
-            <span className="sr-only">Toggle Menu</span>
-          </Button>
-        </SheetTrigger>
-        <SheetContent side="left" className="sm:max-w-xs">
-          <nav className="grid gap-6 text-lg font-medium">
-            <Link
-              href="#"
-              className="group flex h-10 w-10 shrink-0 items-center justify-center gap-2 rounded-full bg-primary text-lg font-semibold text-primary-foreground md:text-base"
+        <SidebarTrigger className="sm:hidden" />
+        <Breadcrumb className="hidden md:flex">
+            <BreadcrumbList>
+            <BreadcrumbItem>
+                <BreadcrumbLink asChild>
+                <Link href="/dashboard">Dashboard</Link>
+                </BreadcrumbLink>
+            </BreadcrumbItem>
+            {pathname !== '/dashboard' && (
+                <>
+                <BreadcrumbSeparator />
+                <BreadcrumbItem>
+                    <BreadcrumbPage>{breadcrumb}</BreadcrumbPage>
+                </BreadcrumbItem>
+                </>
+            )}
+            </BreadcrumbList>
+        </Breadcrumb>
+        <div className="relative ml-auto flex-1 md:grow-0">
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input
+            type="search"
+            placeholder="Search..."
+            className="w-full rounded-lg bg-background pl-8 md:w-[200px] lg:w-[336px]"
+            onFocus={() => setCommandMenuOpen(true)}
+            />
+        </div>
+        <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+            <Button
+                variant="outline"
+                size="icon"
+                className="overflow-hidden rounded-full"
             >
-              <Mountain className="h-5 w-5 transition-all group-hover:scale-110" />
-              <span className="sr-only">VyaparOS</span>
-            </Link>
-            {mobileNavItems.map(item => (
-                <Link
-                    key={item.href}
-                    href={item.href}
-                    className="flex items-center gap-4 px-2.5 text-muted-foreground hover:text-foreground"
-                >
-                    <item.icon className="h-5 w-5" />
-                    {item.label}
-                </Link>
-            ))}
-          </nav>
-        </SheetContent>
-      </Sheet>
-      <Breadcrumb className="hidden md:flex">
-        <BreadcrumbList>
-          <BreadcrumbItem>
-            <BreadcrumbLink asChild>
-              <Link href="/dashboard">Dashboard</Link>
-            </BreadcrumbLink>
-          </BreadcrumbItem>
-          {pathname !== '/dashboard' && (
-            <>
-              <BreadcrumbSeparator />
-              <BreadcrumbItem>
-                <BreadcrumbPage>{breadcrumb}</BreadcrumbPage>
-              </BreadcrumbItem>
-            </>
-          )}
-        </BreadcrumbList>
-      </Breadcrumb>
-      <div className="relative ml-auto flex-1 md:grow-0">
-        <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-        <Input
-          type="search"
-          placeholder="Search..."
-          className="w-full rounded-lg bg-background pl-8 md:w-[200px] lg:w-[336px]"
-          onFocus={() => setCommandMenuOpen(true)}
-        />
-      </div>
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button
-            variant="outline"
-            size="icon"
-            className="overflow-hidden rounded-full"
-          >
-            <Avatar>
-                {user?.photoURL && <AvatarImage src={user.photoURL} alt={user.displayName || 'User'} />}
-                <AvatarFallback>{user?.email?.charAt(0).toUpperCase() || 'U'}</AvatarFallback>
-            </Avatar>
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
-          <DropdownMenuLabel>{user?.email || 'My Account'}</DropdownMenuLabel>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={() => router.push('/settings')}>Settings</DropdownMenuItem>
-          <DropdownMenuItem>Support</DropdownMenuItem>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={handleLogout}>Logout</DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
+                <Avatar>
+                    {user?.photoURL && <AvatarImage src={user.photoURL} alt={user.displayName || 'User'} />}
+                    <AvatarFallback>{user?.email?.charAt(0).toUpperCase() || 'U'}</AvatarFallback>
+                </Avatar>
+            </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+            <DropdownMenuLabel>{user?.email || 'My Account'}</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={() => router.push('/settings')}>Settings</DropdownMenuItem>
+            <DropdownMenuItem>Support</DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={handleLogout}>Logout</DropdownMenuItem>
+            </DropdownMenuContent>
+        </DropdownMenu>
     </header>
   );
 }

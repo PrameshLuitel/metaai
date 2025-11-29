@@ -9,8 +9,8 @@ export default async function ChatPageLayout({
   const conversations = await getConversations();
 
   return (
-    <main className="flex h-[calc(100vh_-_3.5rem)] flex-col bg-background md:h-full">
+    <div className="flex h-[calc(100vh_-_5rem)] flex-col rounded-xl border bg-background shadow-sm md:h-[calc(100vh_-_7rem)]">
         <ChatLayout conversations={conversations}>{children}</ChatLayout>
-    </main>
+    </div>
   );
 }
