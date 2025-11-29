@@ -35,6 +35,7 @@ import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import React from 'react';
 import { useStore } from '@/lib/hooks/use-store';
+import { placeholderImages } from '@/lib/placeholder-images.json';
 
 const mobileNavItems = [
   { href: '/dashboard', icon: Home, label: 'Dashboard' },
@@ -55,6 +56,8 @@ export function Header() {
     const lastSegment = segments[segments.length - 1];
     return lastSegment.charAt(0).toUpperCase() + lastSegment.slice(1);
   }, [pathname]);
+
+  const userAvatar = placeholderImages.find(p => p.id === 'user-avatar-1')?.imageUrl || '';
 
   return (
     <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6">
@@ -121,7 +124,7 @@ export function Header() {
             className="overflow-hidden rounded-full"
           >
             <Image
-              src="https://i.pravatar.cc/150?u=a042581f4e29026024d"
+              src={userAvatar}
               width={36}
               height={36}
               alt="Avatar"

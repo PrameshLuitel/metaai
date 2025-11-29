@@ -114,7 +114,7 @@ export const mockConversations: Conversation[] = [
         sentimentScore: 0.2,
         aiSummary: 'Customer is asking about the availability of momo.',
         unreadCount: 2,
-        avatarUrl: `https://i.pravatar.cc/150?u=cust_9841234567`,
+        avatarUrl: placeholderImages.find(p => p.id === 'user-avatar-1')?.imageUrl || '',
         messages: [
             { id: 'msg1', from: 'customer', text: 'Hello, momo cha?', timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000) },
             { id: 'msg2', from: 'business', text: 'Hajur cha. Kati plate pathaidim?', timestamp: new Date(Date.now() - 1.9 * 60 * 60 * 1000) },
@@ -131,7 +131,7 @@ export const mockConversations: Conversation[] = [
         sentimentScore: 0.1,
         aiSummary: 'Inquiring about the price of sukuti.',
         unreadCount: 0,
-        avatarUrl: `https://i.pravatar.cc/150?u=cust_m_12345`,
+        avatarUrl: placeholderImages.find(p => p.id === 'user-avatar-2')?.imageUrl || '',
         messages: [
              { id: 'msg4', from: 'customer', text: 'Price kati ho sukuti ko?', timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000) },
              { id: 'msg5', from: 'business', text: 'Hajur, Rs. 350 per plate ho.', timestamp: new Date(Date.now() - 23.5 * 60 * 60 * 1000) },
@@ -157,5 +157,10 @@ export const getConversations = async () => {
 
 export const getConversationById = async (id: string) => {
     await new Promise(resolve => setTimeout(resolve, 300));
-    return mockConversations.find(c => c.id === id) || null;
+    const conversation = mockConversations.find(c => c.id === id) || null;
+    if (conversation && !conversation.avatarUrl) {
+        // Fallback for any conversations that might not have an avatar set
+        conversation.avatarUrl = placeholderImages.find(p => p.id === 'user-avatar-2')?.imageUrl || '';
+    }
+    return conversation;
 }
