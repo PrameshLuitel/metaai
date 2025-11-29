@@ -1,17 +1,28 @@
 "use client"
 
+import React, { useState, useEffect } from 'react';
 import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip, CartesianGrid } from "recharts"
 import { formatCurrencyNPR } from "@/lib/utils"
 
-const data = [
+const generateChartData = () => [
   { name: "Week 1", total: Math.floor(Math.random() * 5000) + 1000 },
   { name: "Week 2", total: Math.floor(Math.random() * 5000) + 1000 },
   { name: "Week 3", total: Math.floor(Math.random() * 5000) + 1000 },
   { name: "Week 4", total: Math.floor(Math.random() * 5000) + 1000 },
   { name: "Week 5", total: Math.floor(Math.random() * 5000) + 1000 },
-]
+];
 
 export default function SalesChart() {
+  const [data, setData] = useState<any[]>([]);
+
+  useEffect(() => {
+    setData(generateChartData());
+  }, []);
+
+  if (data.length === 0) {
+    return <div style={{width: '100%', height: 350}} className="flex items-center justify-center"><p>Loading chart data...</p></div>;
+  }
+
   return (
     <ResponsiveContainer width="100%" height={350}>
       <BarChart data={data}>

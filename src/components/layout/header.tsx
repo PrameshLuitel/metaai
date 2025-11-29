@@ -38,10 +38,10 @@ import { useStore } from '@/lib/hooks/use-store';
 import { placeholderImages } from '@/lib/placeholder-images.json';
 
 const mobileNavItems = [
+  { href: '/chat', icon: MessageCircle, label: 'Chat' },
   { href: '/dashboard', icon: Home, label: 'Dashboard' },
   { href: '/orders', icon: ShoppingCart, label: 'Orders' },
   { href: '/inventory', icon: Package, label: 'Inventory' },
-  { href: '/chat', icon: MessageCircle, label: 'Chat' },
   { href: '/customers', icon: Users, label: 'Customers' },
   { href: '/analytics', icon: LineChart, label: 'Analytics' },
 ];

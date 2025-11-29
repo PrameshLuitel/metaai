@@ -50,7 +50,7 @@ export const columns: ColumnDef<InventoryItem>[] = [
         const isLowStock = item.stock <= item.lowStockThreshold;
         return (
             <div className="flex items-center gap-2">
-                <div className={cn("h-2.5 w-2.5 rounded-full", isLowStock ? "bg-red-500" : "bg-green-500")}></div>
+                <div className={cn("h-2.5 w-2.5 rounded-full", isLowStock ? "bg-destructive" : "bg-green-500")}></div>
                 <span>{item.stock} in stock</span>
                 {isLowStock && <Badge variant="destructive">Low Stock</Badge>}
             </div>
@@ -84,7 +84,7 @@ export const columns: ColumnDef<InventoryItem>[] = [
             <DropdownMenuLabel>Actions</DropdownMenuLabel>
             <DropdownMenuItem>Edit</DropdownMenuItem>
             <DropdownMenuItem>View Sales</DropdownMenuItem>
-            <DropdownMenuItem className="text-red-500">Delete</DropdownMenuItem>
+            <DropdownMenuItem className="text-destructive focus:text-destructive-foreground focus:bg-destructive">Delete</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       );

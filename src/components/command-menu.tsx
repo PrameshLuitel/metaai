@@ -23,10 +23,10 @@ import {
 } from "lucide-react";
 
 const navItems = [
+  { name: "Chat", href: "/chat", icon: MessageCircle },
   { name: "Dashboard", href: "/dashboard", icon: Home },
   { name: "Orders", href: "/orders", icon: ShoppingCart },
   { name: "Inventory", href: "/inventory", icon: Package },
-  { name: "Chat", href: "/chat", icon: MessageCircle },
   { name: "Customers", href: "/customers", icon: Users },
   { name: "Analytics", href: "/analytics", icon: LineChart },
 ];

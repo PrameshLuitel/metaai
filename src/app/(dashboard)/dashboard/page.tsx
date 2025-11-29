@@ -45,7 +45,7 @@ export default async function Dashboard() {
         <div className="flex flex-col gap-4 md:gap-8">
             <div className="grid gap-4 md:grid-cols-2 md:gap-8 lg:grid-cols-4">
                 <StatCard title="Total Revenue" value="Rs. 45,231.89" icon={DollarSign} description="+20.1% from last month" />
-                <StatCard title="Udhaari (Credit)" value="Rs. 2,389" icon={CreditCard} description="+180.1% from last month" color="text-red-500" />
+                <StatCard title="Udhaari (Credit)" value="Rs. 2,389" icon={CreditCard} description="+180.1% from last month" valueClassName="text-destructive" />
                 <StatCard title="Sales" value="+12,234" icon={Users} description="+19% from last month" />
                 <StatCard title="Active Now" value="+573" icon={Activity} description="+201 since last hour" />
             </div>
