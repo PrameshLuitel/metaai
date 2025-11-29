@@ -1,22 +1,15 @@
 import {
   Activity,
-  ArrowUpRight,
-  CircleUser,
   CreditCard,
   DollarSign,
-  Menu,
-  Package2,
-  Search,
   Users,
 } from "lucide-react"
 
 import {
   Avatar,
   AvatarFallback,
-  AvatarImage,
 } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
 import {
   Card,
   CardContent,
@@ -24,14 +17,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
 import Link from "next/link"
 import StatCard from "@/components/dashboard/stat-card"
 import SalesChart from "@/components/dashboard/sales-chart"
@@ -68,23 +53,25 @@ export default async function Dashboard() {
                             You have {recentOrders.length} recent orders.
                         </CardDescription>
                     </CardHeader>
-                    <CardContent className="grid gap-8">
-                        {recentOrders.map(order => (
-                            <div key={order.id} className="flex items-center gap-4">
-                                <Avatar className="hidden h-9 w-9 sm:flex">
-                                    <AvatarFallback>{order.customerName.charAt(0)}</AvatarFallback>
-                                </Avatar>
-                                <div className="grid gap-1">
-                                    <p className="text-sm font-medium leading-none">{order.customerName}</p>
-                                    <p className="text-sm text-muted-foreground">
-                                        {formatCurrencyNPR(order.totalAmount)}
-                                    </p>
+                    <CardContent>
+                        <div className="space-y-6">
+                            {recentOrders.map(order => (
+                                <div key={order.id} className="flex items-center gap-4">
+                                    <Avatar className="hidden h-10 w-10 sm:flex">
+                                        <AvatarFallback>{order.customerName.charAt(0)}</AvatarFallback>
+                                    </Avatar>
+                                    <div className="grid flex-1 gap-1">
+                                        <p className="text-sm font-medium leading-none">{order.customerName}</p>
+                                        <p className="text-sm text-muted-foreground">
+                                            {formatCurrencyNPR(order.totalAmount)}
+                                        </p>
+                                    </div>
+                                    <Badge variant={order.status === 'Udhaari' ? 'destructive' : 'secondary'} className="rounded-md">
+                                        {order.status}
+                                    </Badge>
                                 </div>
-                                <div className="ml-auto font-medium">
-                                    <Badge variant={order.status === 'Udhaari' ? 'destructive' : 'outline'}>{order.status}</Badge>
-                                </div>
-                            </div>
-                        ))}
+                            ))}
+                        </div>
                     </CardContent>
                 </Card>
             </div>

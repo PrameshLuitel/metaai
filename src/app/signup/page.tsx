@@ -16,6 +16,7 @@ import { initiateEmailSignUp } from '@/firebase/non-blocking-login';
 import { useRouter } from 'next/navigation';
 import { useState, FormEvent, useEffect } from 'react';
 import { useUser } from '@/firebase';
+import { Mountain } from 'lucide-react';
 
 export default function SignupPage() {
   const auth = useAuth();
@@ -33,6 +34,7 @@ export default function SignupPage() {
 
   const handleSignup = (e: FormEvent) => {
     e.preventDefault();
+    setError(null);
     if (!email || !password) {
         setError("Please enter both email and password.");
         return;
@@ -49,12 +51,16 @@ export default function SignupPage() {
   }
 
   return (
-    <div className="flex h-screen w-full items-center justify-center bg-muted/40">
-      <Card className="mx-auto max-w-sm">
-        <CardHeader>
-          <CardTitle className="text-xl">Sign Up</CardTitle>
+     <div className="flex min-h-screen w-full flex-col items-center justify-center bg-muted/40 p-4">
+        <div className="mb-8 flex items-center gap-2 text-foreground">
+            <Mountain className="h-6 w-6" />
+            <span className="text-xl font-semibold">VyaparOS</span>
+        </div>
+      <Card className="w-full max-w-sm">
+        <CardHeader className="text-center">
+          <CardTitle className="text-2xl">Create an Account</CardTitle>
           <CardDescription>
-            Enter your information to create an account
+            Enter your details to get started.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -80,14 +86,14 @@ export default function SignupPage() {
                 onChange={(e) => setPassword(e.target.value)}
               />
             </div>
-            {error && <p className="text-sm text-destructive">{error}</p>}
+            {error && <p className="text-sm font-medium text-destructive">{error}</p>}
             <Button type="submit" className="w-full">
               Create an account
             </Button>
           </form>
           <div className="mt-4 text-center text-sm">
             Already have an account?{' '}
-            <Link href="/login" className="underline">
+            <Link href="/login" className="font-medium text-primary underline-offset-4 hover:underline">
               Login
             </Link>
           </div>
